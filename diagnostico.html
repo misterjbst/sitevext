@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080808">
+<title>Diagnóstico — Vext Mídia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --preto:#080808; --carvao:#131313; --borda:#242424;
+    --ouro:#E4A93C; --ouro-claro:#F5D48A;
+    --texto:#D8D8D8; --fraco:#8A8A8A; --erro:#E4685C;
+    --toque:52px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--preto);color:var(--texto);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+    min-height:100dvh;display:flex;flex-direction:column;
+  }
+
+  /* ---------- progresso ---------- */
+  .barra-topo{
+    position:fixed;top:0;left:0;right:0;z-index:20;
+    height:3px;background:var(--borda);
+  }
+  .barra-topo i{
+    display:block;height:100%;width:0;background:var(--ouro);
+    transition:width .3s ease;
+  }
+  .cabecalho{
+    padding:calc(22px + env(safe-area-inset-top)) 20px 0;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .logo{font-family:'Archivo',sans-serif;font-weight:800;font-size:16px;letter-spacing:.16em;color:var(--texto)}
+  .logo span{color:var(--ouro)}
+  .contador{font-size:12.5px;color:var(--fraco);font-variant-numeric:tabular-nums}
+
+  /* ---------- palco ---------- */
+  main{
+    flex:1;display:flex;align-items:center;
+    padding:26px 20px calc(120px + env(safe-area-inset-bottom));
+  }
+  .palco{width:100%;max-width:560px;margin:0 auto}
+
+  .etapa{display:none}
+  .etapa.on{display:block;animation:entra .28s ease}
+  @keyframes entra{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){.etapa.on{animation:none}}
+
+  .num-etapa{
+    font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ouro);font-weight:600;margin-bottom:14px;
+  }
+  h2{
+    font-family:'Archivo',sans-serif;font-weight:800;text-transform:uppercase;
+    font-size:26px;line-height:1.08;letter-spacing:-.01em;color:#fff;
+  }
+  h2 em{font-style:normal;color:var(--ouro)}
+  .apoio{margin-top:10px;color:var(--fraco);font-size:15px}
+
+  /* ---------- opções ---------- */
+  .opcoes{margin-top:26px;display:flex;flex-direction:column;gap:9px}
+  .opcao{
+    display:flex;align-items:center;gap:14px;width:100%;
+    min-height:var(--toque);padding:14px 16px;
+    background:var(--carvao);border:1px solid var(--borda);border-radius:9px;
+    color:var(--texto);font-family:'Inter',sans-serif;font-size:16px;
+    text-align:left;cursor:pointer;
+  }
+  .opcao:active,.opcao:hover{border-color:var(--ouro);background:#181512}
+  .opcao.sel{border-color:var(--ouro);background:#1D1810}
+  .opcao .tecla{
+    width:28px;height:28px;flex:none;border-radius:6px;
+    background:#1F1F1F;border:1px solid var(--borda);
+    display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--fraco);
+  }
+  .opcao.sel .tecla{background:var(--ouro);border-color:var(--ouro);color:#0A0A0A}
+
+  /* ---------- campos ---------- */
+  .campos{margin-top:24px;display:flex;flex-direction:column;gap:16px}
+  label{display:block;font-size:13.5px;font-weight:600;color:var(--texto);margin-bottom:6px}
+  label i{color:var(--fraco);font-style:normal;font-weight:400}
+  input,textarea{
+    width:100%;font-family:'Inter',sans-serif;font-size:16px;color:#fff;
+    background:var(--carvao);border:1px solid var(--borda);border-radius:9px;
+    padding:15px 14px;min-height:var(--toque);
+  }
+  input::placeholder,textarea::placeholder{color:#5C5C5C}
+  input:focus,textarea:focus{
+    outline:none;border-color:var(--ouro);box-shadow:0 0 0 3px rgba(228,169,60,.16);
+  }
+  textarea{resize:vertical;min-height:90px;line-height:1.5}
+  .erro{font-size:12.5px;color:var(--erro);margin-top:6px;display:none}
+  .erro.on{display:block}
+
+  /* ---------- rodapé fixo ---------- */
+  .rodape{
+    position:fixed;left:0;right:0;bottom:0;z-index:20;
+    background:rgba(8,8,8,.95);backdrop-filter:blur(10px);
+    border-top:1px solid var(--borda);
+    padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+  }
+  .rodape .dentro{max-width:560px;margin:0 auto;display:flex;gap:10px;align-items:center}
+  .btn{
+    flex:1;min-height:54px;border:none;border-radius:9px;cursor:pointer;
+    background:var(--ouro);color:#0A0A0A;
+    font-family:'Archivo',sans-serif;font-weight:800;text-transform:uppercase;
+    letter-spacing:.03em;font-size:15px;
+  }
+  .btn:disabled{background:#2A2A2A;color:#5C5C5C;cursor:not-allowed}
+  .btn.voltar{
+    flex:none;width:54px;background:transparent;border:1px solid var(--borda);
+    color:var(--texto);font-size:20px;
+  }
+  .dica{
+    text-align:center;font-size:12px;color:#5C5C5C;margin-top:9px;
+  }
+  @media(max-width:400px){.dica{display:none}}
+
+  /* ---------- telas finais ---------- */
+  .final{display:none;text-align:center;padding:20px 0}
+  .final.on{display:block}
+  .selo{
+    width:60px;height:60px;border-radius:50%;display:grid;place-items:center;
+    margin:0 auto 22px;font-size:27px;
+  }
+  .selo.ok{background:var(--ouro);color:#0A0A0A}
+  .selo.nao{background:var(--carvao);border:1px solid var(--borda);color:var(--fraco)}
+  .final h2{margin-bottom:12px}
+  .final p{color:var(--fraco);font-size:15.5px;max-width:44ch;margin:0 auto 12px}
+  .final .btn{margin-top:22px;width:100%;flex:none}
+  .carregando{
+    width:26px;height:26px;border:2px solid var(--borda);border-top-color:var(--ouro);
+    border-radius:50%;margin:0 auto 18px;animation:gira .8s linear infinite;
+  }
+  @keyframes gira{to{transform:rotate(360deg)}}
+
+  .oculto{display:none!important}
+  :focus-visible{outline:2px solid var(--ouro);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<!-- ===================================================================
+     CONFIGURAÇÃO
+     =================================================================== -->
+<script>
+const CFG = {
+  // Apps Script que grava o lead e devolve o token.
+  // Vazio = MODO DEMO (não grava, mas o corte e a pontuação funcionam).
+  URL_APPS_SCRIPT: "",
+
+  // Página de agenda. Quem passa no corte é levado pra cá com o token.
+  URL_AGENDA: "agenda.html",
+
+  // Regras do corte — mesmas do servidor
+  ACEITA_SOCIO: true,        // "decido com meu sócio" passa
+  CORTA_VERBA_BAIXA: true,   // pretender investir até R$ 1 mil corta
+
+  WHATSAPP: "(92) 90000-0000"
+};
+
+/* =====================================================================
+   PIXEL DA META — CADASTRE AQUI
+   ===================================================================== */
+const TRACK = {
+  PIXEL_ID: "",              // mesmo número usado na agenda
+  CODIGO_TESTE: "",          // só durante o teste. APAGUE depois.
+  EVENTOS: {
+    abriu_form:    { ativo:true,  nome:"ViewContent" },
+    comecou:       { ativo:true,  nome:"FormInicio"  },   // respondeu a etapa 1
+    lead:          { ativo:true,  nome:"Lead"        },   // OTIMIZE A CAMPANHA POR ESTE
+    lead_aprovado: { ativo:true,  nome:"LeadQualificado" } // só medição, NÃO otimize
+  }
+};
+</script>
+
+<script>
+(function(){
+  if(!TRACK.PIXEL_ID) return;
+  !function(f,b,e,v,n,t,s){
+    if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;
+    s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)
+  }(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', TRACK.PIXEL_ID);
+})();
+</script>
+
+<div class="barra-topo"><i id="progresso"></i></div>
+
+<div class="cabecalho">
+  <span class="logo">VE<span>X</span>T</span>
+  <span class="contador" id="contador">1 / 8</span>
+</div>
+
+<main>
+<div class="palco">
+
+  <!-- ============ 1 CONTATO ============ -->
+  <section class="etapa on" data-e="1">
+    <div class="num-etapa">Etapa 1 de 8</div>
+    <h2>Primeiro, como eu falo <em>com você</em></h2>
+    <p class="apoio">Oito perguntas rápidas. No fim, se fizer sentido, você já escolhe o horário.</p>
+    <div class="campos">
+      <div>
+        <label for="nome">Seu nome</label>
+        <input id="nome" type="text" autocomplete="name" autocapitalize="words" enterkeyhint="next">
+        <span class="erro" id="e-nome">Informe seu nome.</span>
+      </div>
+      <div>
+        <label for="email">E-mail</label>
+        <input id="email" type="email" inputmode="email" autocomplete="email"
+               autocapitalize="none" spellcheck="false" enterkeyhint="next">
+        <span class="erro" id="e-email">E-mail inválido.</span>
+      </div>
+      <div>
+        <label for="zap">WhatsApp</label>
+        <input id="zap" type="tel" inputmode="numeric" autocomplete="tel"
+               placeholder="(92) 90000-0000" enterkeyhint="next">
+        <span class="erro" id="e-zap">Informe o número com DDD.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2 EMPRESA ============ -->
+  <section class="etapa" data-e="2">
+    <div class="num-etapa">Etapa 2 de 8</div>
+    <h2>Sobre a sua <em>empresa</em></h2>
+    <div class="campos">
+      <div>
+        <label for="empresa">Nome da empresa</label>
+        <input id="empresa" type="text" autocomplete="organization" autocapitalize="words" enterkeyhint="next">
+        <span class="erro" id="e-empresa">Informe o nome da empresa.</span>
+      </div>
+      <div>
+        <label for="segmento">O que vocês vendem</label>
+        <input id="segmento" type="text" placeholder="Ex.: clínica odontológica, loja de piso, advocacia" enterkeyhint="next">
+        <span class="erro" id="e-segmento">Me diga em poucas palavras.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3 FATURAMENTO — corte + 30 pts ============ -->
+  <section class="etapa" data-e="3" data-campo="faturamento">
+    <div class="num-etapa">Etapa 3 de 8</div>
+    <h2>Quanto a empresa <em>fatura</em> por mês</h2>
+    <p class="apoio">Faturamento, não lucro. Uma média dos últimos meses já serve.</p>
+    <div class="opcoes"></div>
+  </section>
+
+  <!-- ============ 4 DECISOR — corte + 25 pts ============ -->
+  <section class="etapa" data-e="4" data-campo="decisor">
+    <div class="num-etapa">Etapa 4 de 8</div>
+    <h2>Quem <em>decide</em> contratar</h2>
+    <div class="opcoes"></div>
+  </section>
+
+  <!-- ============ 5 PRAZO — corte + 18 pts ============ -->
+  <section class="etapa" data-e="5" data-campo="prazo">
+    <div class="num-etapa">Etapa 5 de 8</div>
+    <h2>Quando você quer <em>começar</em></h2>
+    <div class="opcoes"></div>
+  </section>
+
+  <!-- ============ 6 JÁ INVESTE — 12 pts, não corta ============ -->
+  <section class="etapa" data-e="6" data-campo="verba">
+    <div class="num-etapa">Etapa 6 de 8</div>
+    <h2>Você já investe em anúncio <em>hoje</em></h2>
+    <div class="opcoes"></div>
+  </section>
+
+  <!-- ============ 7 PRETENDE + DESAFIO — corte + 15 pts ============ -->
+  <section class="etapa" data-e="7" data-campo="pretende">
+    <div class="num-etapa">Etapa 7 de 8</div>
+    <h2>Quanto pretende investir <em>por mês</em></h2>
+    <p class="apoio">Só a verba de mídia, sem contar a gestão.</p>
+    <div class="opcoes"></div>
+    <div class="campos" style="margin-top:22px">
+      <div>
+        <label for="desafio">Qual o principal desafio do negócio hoje <i>— opcional</i></label>
+        <textarea id="desafio" maxlength="500" placeholder="O que mais te incomoda hoje" enterkeyhint="done"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 8 AGENDA ============ -->
+  <section class="etapa" data-e="8">
+    <div class="num-etapa">Etapa 8 de 8</div>
+    <h2>Pronto pra escolher o <em>horário</em></h2>
+    <p class="apoio">Toque abaixo. Vou registrar suas respostas e abrir a agenda com os horários livres.</p>
+  </section>
+
+  <!-- ============ ENVIANDO ============ -->
+  <div class="final" id="telaEnviando">
+    <div class="carregando"></div>
+    <h2>Registrando suas <em>respostas</em></h2>
+    <p>Um instante.</p>
+  </div>
+
+  <!-- ============ APROVADO ============ -->
+  <div class="final" id="telaOk">
+    <div class="selo ok">✓</div>
+    <h2>Faz sentido <em>conversar</em></h2>
+    <p>Suas respostas se encaixam no que eu atendo. Abrindo a agenda com os horários livres.</p>
+    <button class="btn" id="btnAgenda">Escolher horário</button>
+  </div>
+
+  <!-- ============ FORA DO CORTE ============ -->
+  <div class="final" id="telaNao">
+    <div class="selo nao">—</div>
+    <h2>Ainda não é o <em>momento</em></h2>
+    <p id="txtNao">Pelo que você respondeu, meu trabalho provavelmente não traria o retorno que justifica o investimento agora.</p>
+    <p>Prefiro dizer isso do que vender uma conversa que não vai te levar a nada. Registrei seus dados e, se a situação mudar, me chame no WhatsApp <span id="zapNao"></span>.</p>
+  </div>
+
+</div>
+</main>
+
+<div class="rodape" id="rodape">
+  <div class="dentro">
+    <button class="btn voltar oculto" id="btnVoltar" aria-label="Voltar">‹</button>
+    <button class="btn" id="btnAvancar" disabled>Continuar</button>
+  </div>
+  <p class="dica" id="dica">Use as teclas A a E para responder · Enter avança</p>
+</div>
+
+<script>
+/* =====================================================================
+   PERGUNTAS DE MÚLTIPLA ESCOLHA
+   pontos = quanto aquela resposta vale
+   passa  = se aquela resposta atende ao item do corte
+   ===================================================================== */
+const PERGUNTAS = {
+  faturamento: { peso:30, opcoes:[
+    { txt:"Até R$ 20 mil por mês",            pontos:0,  passa:false },
+    { txt:"Entre R$ 20 mil e R$ 40 mil",      pontos:0,  passa:false },
+    { txt:"Entre R$ 40 mil e R$ 100 mil",     pontos:20, passa:true  },
+    { txt:"Entre R$ 100 mil e R$ 300 mil",    pontos:26, passa:true  },
+    { txt:"Acima de R$ 300 mil",              pontos:30, passa:true  }
+  ]},
+  decisor: { peso:25, opcoes:[
+    { txt:"Eu decido sozinho",                pontos:25, passa:true  },
+    { txt:"Decido junto com meu sócio",       pontos:20, passa:CFG.ACEITA_SOCIO },
+    { txt:"Preciso levar a outra pessoa",     pontos:8,  passa:false },
+    { txt:"Não sou eu que decido",            pontos:0,  passa:false }
+  ]},
+  prazo: { peso:18, opcoes:[
+    { txt:"Quero começar agora",              pontos:18, passa:true  },
+    { txt:"Nos próximos 30 dias",             pontos:15, passa:true  },
+    { txt:"Em 1 a 3 meses",                   pontos:7,  passa:false },
+    { txt:"Só estou pesquisando",             pontos:0,  passa:false }
+  ]},
+  verba: { peso:12, opcoes:[
+    { txt:"Não invisto nada hoje",            pontos:2,  passa:true },
+    { txt:"Até R$ 1 mil por mês",             pontos:5,  passa:true },
+    { txt:"Entre R$ 1 mil e R$ 3 mil",        pontos:8,  passa:true },
+    { txt:"Entre R$ 3 mil e R$ 10 mil",       pontos:11, passa:true },
+    { txt:"Acima de R$ 10 mil",               pontos:12, passa:true }
+  ]},
+  pretende: { peso:15, opcoes:[
+    { txt:"Até R$ 1 mil por mês",             pontos:0,  passa:!CFG.CORTA_VERBA_BAIXA },
+    { txt:"Entre R$ 1 mil e R$ 3 mil",        pontos:11, passa:true },
+    { txt:"Entre R$ 3 mil e R$ 5 mil",        pontos:14, passa:true },
+    { txt:"Acima de R$ 5 mil",                pontos:15, passa:true },
+    { txt:"Ainda não sei",                    pontos:8,  passa:true }   // "não sei" PASSA
+  ]}
+};
+
+const TOTAL = 8;
+const S = { etapa:1, respostas:{}, eid:null, enviando:false, comecou:false };
+const $ = id => document.getElementById(id);
+
+/* ---------- pixel ---------- */
+function novoEid(){
+  return "vx-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,10);
+}
+function cookie(n){
+  const m = document.cookie.match("(^|;)\\s*" + n + "\\s*=\\s*([^;]+)");
+  return m ? m.pop() : "";
+}
+function fbcAtual(){
+  const c = cookie("_fbc");
+  if(c) return c;
+  const id = new URLSearchParams(location.search).get("fbclid");
+  return id ? "fb.1." + Date.now() + "." + id : "";
+}
+function disparar(chave, dados, eid){
+  const cfg = TRACK.EVENTOS[chave];
+  if(!TRACK.PIXEL_ID || !cfg || !cfg.ativo || typeof fbq !== "function") return;
+  const padrao = ["ViewContent","Lead","Contact","CompleteRegistration","Schedule","SubmitApplication"];
+  const metodo = padrao.indexOf(cfg.nome) !== -1 ? "track" : "trackCustom";
+  try{ fbq(metodo, cfg.nome, dados || {}, eid ? { eventID: eid } : {}); }catch(e){}
+}
+
+/* ---------- monta as opções ---------- */
+const LETRAS = ["A","B","C","D","E"];
+function montarOpcoes(){
+  document.querySelectorAll(".etapa[data-campo]").forEach(sec => {
+    const campo = sec.dataset.campo;
+    const caixa = sec.querySelector(".opcoes");
+    PERGUNTAS[campo].opcoes.forEach((o,i) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "opcao";
+      b.innerHTML = '<span class="tecla">' + LETRAS[i] + '</span><span>' + o.txt + '</span>';
+      b.addEventListener("click", () => responder(campo, i));
+      caixa.appendChild(b);
+    });
+  });
+}
+
+function responder(campo, i){
+  S.respostas[campo] = i;
+  const sec = document.querySelector('.etapa[data-campo="' + campo + '"]');
+  sec.querySelectorAll(".opcao").forEach((b,k) => b.classList.toggle("sel", k === i));
+  atualizarBotao();
+  // resposta única: avança sozinho, menos na etapa 7 que tem campo de texto
+  if(campo !== "pretende") setTimeout(() => avancar(), 220);
+}
+
+/* ---------- validação por etapa ---------- */
+const emailOk = v => /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v);
+
+function etapaValida(n){
+  if(n === 1){
+    return $("nome").value.trim().length >= 3
+        && emailOk($("email").value.trim())
+        && $("zap").value.replace(/\D/g,"").length >= 10;
+  }
+  if(n === 2){
+    return $("empresa").value.trim().length >= 2 && $("segmento").value.trim().length >= 2;
+  }
+  const sec = document.querySelector('.etapa[data-e="' + n + '"]');
+  const campo = sec && sec.dataset.campo;
+  if(campo) return S.respostas[campo] !== undefined;
+  return true;   // etapa 8
+}
+
+function mostrarErros(n){
+  if(n === 1){
+    $("e-nome").classList.toggle("on", $("nome").value.trim().length < 3);
+    $("e-email").classList.toggle("on", !emailOk($("email").value.trim()));
+    $("e-zap").classList.toggle("on", $("zap").value.replace(/\D/g,"").length < 10);
+  }
+  if(n === 2){
+    $("e-empresa").classList.toggle("on", $("empresa").value.trim().length < 2);
+    $("e-segmento").classList.toggle("on", $("segmento").value.trim().length < 2);
+  }
+}
+
+function atualizarBotao(){
+  $("btnAvancar").disabled = !etapaValida(S.etapa);
+  $("btnAvancar").textContent = S.etapa === TOTAL ? "Abrir a agenda" : "Continuar";
+  $("btnVoltar").classList.toggle("oculto", S.etapa === 1);
+}
+
+/* ---------- navegação ---------- */
+function irPara(n){
+  document.querySelectorAll(".etapa").forEach(s => {
+    s.classList.toggle("on", Number(s.dataset.e) === n);
+  });
+  S.etapa = n;
+  $("contador").textContent = n + " / " + TOTAL;
+  $("progresso").style.width = ((n-1)/TOTAL*100) + "%";
+  atualizarBotao();
+  window.scrollTo({top:0});
+
+  const sec = document.querySelector('.etapa[data-e="' + n + '"]');
+  const primeiro = sec.querySelector("input, textarea");
+  if(primeiro && window.innerWidth > 700) primeiro.focus();
+}
+
+function avancar(){
+  if(!etapaValida(S.etapa)){ mostrarErros(S.etapa); return; }
+
+  if(S.etapa === 1 && !S.comecou){
+    S.comecou = true;
+    disparar("comecou", { content_name:"Diagnóstico Vext" });
+  }
+  if(S.etapa === TOTAL){ enviar(); return; }
+  irPara(S.etapa + 1);
+}
+function voltar(){ if(S.etapa > 1) irPara(S.etapa - 1); }
+
+$("btnAvancar").addEventListener("click", avancar);
+$("btnVoltar").addEventListener("click", voltar);
+
+/* ---------- teclado ---------- */
+document.addEventListener("keydown", e => {
+  if(S.enviando) return;
+  const emCampo = /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName);
+
+  if(e.key === "Enter"){
+    if(document.activeElement.tagName === "TEXTAREA" && !e.metaKey && !e.ctrlKey) return;
+    e.preventDefault(); avancar(); return;
+  }
+  if(emCampo) return;
+
+  const sec = document.querySelector('.etapa[data-e="' + S.etapa + '"]');
+  const campo = sec && sec.dataset.campo;
+  if(!campo) return;
+
+  const i = LETRAS.indexOf(e.key.toUpperCase());
+  if(i >= 0 && i < PERGUNTAS[campo].opcoes.length){
+    e.preventDefault(); responder(campo, i);
+  }
+});
+
+/* ---------- máscara do telefone ---------- */
+$("zap").addEventListener("input", e => {
+  let v = e.target.value.replace(/\D/g,"").slice(0,11);
+  if(v.length > 6)      v = "(" + v.slice(0,2) + ") " + v.slice(2,7) + "-" + v.slice(7);
+  else if(v.length > 2) v = "(" + v.slice(0,2) + ") " + v.slice(2);
+  else if(v.length > 0) v = "(" + v;
+  e.target.value = v;
+});
+["nome","email","zap","empresa","segmento"].forEach(id => {
+  $(id).addEventListener("input", atualizarBotao);
+});
+
+/* =====================================================================
+   CORTE E PONTUAÇÃO
+   Aqui é só pra decidir a tela. O SERVIDOR recalcula e é ele que vale.
+   ===================================================================== */
+const ITENS_CORTE = ["faturamento","decisor","prazo","pretende"];
+
+function avaliar(){
+  let pontos = 0;
+  Object.keys(PERGUNTAS).forEach(campo => {
+    const i = S.respostas[campo];
+    if(i !== undefined) pontos += PERGUNTAS[campo].opcoes[i].pontos;
+  });
+
+  const reprovados = ITENS_CORTE.filter(campo => {
+    const i = S.respostas[campo];
+    return i === undefined || !PERGUNTAS[campo].opcoes[i].passa;
+  });
+
+  const passou = reprovados.length === 0;
+  let faixa;
+  if(!passou) faixa = "D";
+  else if(pontos >= 80) faixa = "A";
+  else if(pontos >= 65) faixa = "B";
+  else faixa = "C";
+
+  return { pontos, faixa, passou, reprovados };
+}
+
+/* =====================================================================
+   ENVIO
+   ===================================================================== */
+async function enviar(){
+  if(S.enviando) return;
+  S.enviando = true;
+  if(document.activeElement) document.activeElement.blur();
+
+  const r = avaliar();
+  S.eid = novoEid();
+
+  document.querySelectorAll(".etapa").forEach(s => s.classList.remove("on"));
+  $("rodape").classList.add("oculto");
+  $("telaEnviando").classList.add("on");
+  $("progresso").style.width = "100%";
+
+  const p = new URLSearchParams(location.search);
+  const dados = {
+    acao:"lead",
+    nome:$("nome").value.trim(),
+    email:$("email").value.trim(),
+    whatsapp:$("zap").value.trim(),
+    empresa:$("empresa").value.trim(),
+    segmento:$("segmento").value.trim(),
+    desafio:$("desafio").value.trim(),
+
+    // índices e textos, pro servidor recalcular sem depender da tela
+    respostas:S.respostas,
+    faturamento:rotulo("faturamento"),
+    decisor:rotulo("decisor"),
+    prazo:rotulo("prazo"),
+    verba:rotulo("verba"),
+    pretende:rotulo("pretende"),
+
+    pontuacao_cliente:r.pontos,
+    faixa_cliente:r.faixa,
+    passou_cliente:r.passou,
+
+    eid:S.eid,
+    fbp:cookie("_fbp"),
+    fbc:fbcAtual(),
+    ua:navigator.userAgent,
+    codigo_teste:TRACK.CODIGO_TESTE,
+    url:location.href,
+    utm_source:p.get("utm_source") || "",
+    utm_medium:p.get("utm_medium") || "",
+    utm_campaign:p.get("utm_campaign") || "",
+    utm_content:p.get("utm_content") || ""
+  };
+
+  let resposta = { ok:true, token:"demo", faixa:r.faixa, passou:r.passou };
+  if(CFG.URL_APPS_SCRIPT){
+    try{
+      // text/plain: application/json quebra por CORS no Apps Script
+      const req = await fetch(CFG.URL_APPS_SCRIPT, {
+        method:"POST",
+        headers:{ "Content-Type":"text/plain;charset=utf-8" },
+        body: JSON.stringify(dados)
+      });
+      resposta = await req.json();
+    }catch(err){
+      resposta = { ok:false };
+    }
+  }else{
+    await new Promise(x => setTimeout(x, 600));
+  }
+
+  // o veredito do SERVIDOR manda; se ele não respondeu, cai no cálculo local
+  const passou = (resposta && typeof resposta.passou === "boolean") ? resposta.passou : r.passou;
+
+  disparar("lead", { content_name:"Diagnóstico Vext", faixa: resposta.faixa || r.faixa }, S.eid);
+  if(passou) disparar("lead_aprovado", { faixa: resposta.faixa || r.faixa }, S.eid + "-q");
+
+  $("telaEnviando").classList.remove("on");
+
+  if(passou){
+    const q = new URLSearchParams({
+      token: resposta.token || "",
+      lead: resposta.lead_id || "",
+      nome: dados.nome,
+      email: dados.email,
+      zap: dados.whatsapp,
+      empresa: dados.empresa,
+      utm_content: dados.utm_content
+    });
+    const destino = CFG.URL_AGENDA + "?" + q.toString();
+    $("btnAgenda").addEventListener("click", () => location.href = destino);
+    $("telaOk").classList.add("on");
+    setTimeout(() => { if($("telaOk").classList.contains("on")) location.href = destino; }, 1600);
+  }else{
+    $("telaNao").classList.add("on");
+    $("zapNao").textContent = CFG.WHATSAPP;
+  }
+  S.enviando = false;
+}
+
+function rotulo(campo){
+  const i = S.respostas[campo];
+  return i === undefined ? "" : PERGUNTAS[campo].opcoes[i].txt;
+}
+
+/* =====================================================================
+   INÍCIO
+   ===================================================================== */
+(function iniciar(){
+  montarOpcoes();
+  irPara(1);
+  const p = new URLSearchParams(location.search);
+  if(TRACK.PIXEL_ID && typeof fbq === "function"){
+    try{ fbq("track","PageView"); }catch(e){}
+  }
+  disparar("abriu_form", {
+    content_name:"Diagnóstico Vext",
+    origem: p.get("utm_content") || "direto"
+  });
+})();
+</script>
+
+</body>
+</html>

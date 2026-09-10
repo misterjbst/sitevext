@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="format-detection" content="telephone=no">
+<title>Agendar conversa — Vext Mídia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --fundo:#FFFFFF;
+    --superficie:#FAF9F7;
+    --borda:#E7E4DF;
+    --borda-forte:#D4D0C9;
+    --preto:#080808;
+    --carvao:#131313;
+    --fraco:#6E6B66;
+    --ouro:#E4A93C;
+    --ouro-claro:#F5D48A;
+    --ouro-fundo:#FDF6E7;
+    --ouro-texto:#8A6314;
+    --erro:#B4342A;
+    --toque:48px;                      /* alvo mínimo de toque */
+    --barra:calc(76px + env(safe-area-inset-bottom));
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--fundo);color:var(--carvao);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    font-size:16px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior-y:none;
+    padding-bottom:var(--barra);        /* espaço pra barra fixa */
+  }
+  body.sem-barra{padding-bottom:env(safe-area-inset-bottom)}
+
+  .wrap{
+    width:100%;max-width:640px;margin:0 auto;
+    padding-left:max(16px, env(safe-area-inset-left));
+    padding-right:max(16px, env(safe-area-inset-right));
+  }
+
+  /* ============ topo fixo ============ */
+  header{
+    position:sticky;top:0;z-index:30;background:var(--fundo);
+    border-bottom:1px solid var(--borda);
+    padding-top:env(safe-area-inset-top);
+  }
+  header .wrap{display:flex;align-items:center;justify-content:space-between;height:56px}
+  .logo{font-family:'Archivo',sans-serif;font-weight:800;font-size:17px;letter-spacing:.15em;color:var(--carvao)}
+  .logo span{color:var(--ouro)}
+  .fuso-topo{font-size:12px;color:var(--fraco);text-align:right;line-height:1.25;max-width:44%}
+
+  /* ============ título ============ */
+  .intro{padding:26px 0 18px}
+  h1{
+    font-family:'Archivo',sans-serif;font-weight:800;text-transform:uppercase;
+    font-size:28px;line-height:1.05;letter-spacing:-.01em;color:var(--preto);
+  }
+  h1 em{font-style:normal;color:var(--ouro)}
+  .intro p{margin-top:10px;color:var(--fraco);font-size:15px}
+
+  /* ============ trilha de passos ============ */
+  .passos{display:flex;gap:6px;margin-bottom:18px}
+  .passo{
+    flex:1;height:4px;border-radius:2px;background:var(--borda);
+  }
+  .passo.feito,.passo.ativo{background:var(--ouro)}
+  .passo-txt{
+    font-size:12px;color:var(--fraco);margin:-10px 0 18px;
+    text-transform:uppercase;letter-spacing:.08em;font-weight:600;
+  }
+
+  /* ============ blocos ============ */
+  .bloco{
+    border:1px solid var(--borda);border-radius:12px;
+    padding:18px 16px;margin-bottom:12px;background:var(--fundo);
+  }
+  .bloco.inativo{opacity:.4;pointer-events:none}
+  .cabeca{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .rotulo{
+    font-family:'Archivo',sans-serif;font-weight:800;text-transform:uppercase;
+    font-size:12.5px;letter-spacing:.09em;color:var(--carvao);
+  }
+  .ajuda{font-size:14px;color:var(--fraco);margin:4px 0 16px}
+  .alterar{
+    background:none;border:none;color:var(--ouro-texto);font-family:'Inter',sans-serif;
+    font-size:14px;font-weight:600;cursor:pointer;
+    min-height:var(--toque);padding:0 4px;flex:none;
+  }
+  /* passo concluído vira uma linha só */
+  .bloco.colapsado .corpo{display:none}
+  .bloco.colapsado .ajuda{display:none}
+  .bloco.colapsado{padding:12px 16px;background:var(--superficie)}
+  .valor-colapsado{
+    display:none;font-size:15.5px;font-weight:600;color:var(--carvao);margin-top:2px;
+  }
+  .bloco.colapsado .valor-colapsado{display:block}
+
+  /* ============ calendário ============ */
+  .mes{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .mes strong{font-size:16px;font-weight:600;text-transform:capitalize}
+  .nav-mes{display:flex;gap:4px}
+  .nav-mes button{
+    width:var(--toque);height:var(--toque);
+    border:1px solid var(--borda);background:var(--fundo);border-radius:8px;
+    cursor:pointer;font-size:20px;color:var(--carvao);line-height:1;
+  }
+  .nav-mes button:active:not(:disabled){background:var(--ouro-fundo);border-color:var(--ouro)}
+  .nav-mes button:disabled{opacity:.3}
+
+  .grade{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+  .dia-nome{
+    text-align:center;font-size:10.5px;color:var(--fraco);padding:4px 0;
+    text-transform:uppercase;letter-spacing:.04em;
+  }
+  .dia{
+    min-height:46px;border:1px solid var(--borda);background:var(--fundo);border-radius:8px;
+    font-family:'Inter',sans-serif;font-size:15px;color:var(--carvao);
+    display:grid;place-items:center;position:relative;cursor:pointer;padding:0;
+  }
+  .dia:active:not(:disabled){background:var(--ouro-fundo);border-color:var(--ouro)}
+  .dia:disabled{color:#C9C6C1;background:var(--superficie);border-color:transparent}
+  .dia.sel{background:var(--ouro);border-color:var(--ouro);font-weight:700}
+  .dia.vazio{border:none;background:none}
+  .dia.tem-vaga::after{
+    content:"";position:absolute;bottom:5px;width:4px;height:4px;border-radius:50%;background:var(--ouro);
+  }
+  .dia.sel.tem-vaga::after{background:var(--carvao)}
+
+  /* ============ horários ============ */
+  .turno{margin-bottom:16px}
+  .turno:last-child{margin-bottom:0}
+  .turno h4{
+    font-size:11.5px;font-weight:700;color:var(--fraco);text-transform:uppercase;
+    letter-spacing:.09em;margin-bottom:8px;
+  }
+  .horarios{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .hora{
+    min-height:52px;border:1px solid var(--borda);background:var(--fundo);border-radius:8px;
+    font-family:'Inter',sans-serif;font-size:16px;font-weight:600;color:var(--carvao);
+    cursor:pointer;font-variant-numeric:tabular-nums;padding:0;
+  }
+  .hora:active:not(:disabled){background:var(--ouro-fundo);border-color:var(--ouro)}
+  .hora.sel{background:var(--ouro);border-color:var(--ouro)}
+  .hora:disabled{
+    color:#C4C1BC;background:var(--superficie);border-color:transparent;
+    text-decoration:line-through;font-weight:400;
+  }
+  .carregando{color:var(--fraco);font-size:15px;padding:14px 0}
+
+  .aviso-fuso{
+    margin-top:14px;padding:12px 13px;background:var(--ouro-fundo);
+    border:1px solid #F0DFB8;border-radius:8px;font-size:13.5px;color:#6B5011;
+  }
+
+  /* ============ campos ============ */
+  .campos{display:grid;grid-template-columns:1fr;gap:14px}
+  .campo{display:flex;flex-direction:column;gap:6px}
+  label{font-size:13.5px;font-weight:600;color:var(--carvao)}
+  label i{color:var(--fraco);font-style:normal;font-weight:400}
+  input,textarea,select{
+    font-family:'Inter',sans-serif;
+    font-size:16px;                        /* 16px evita zoom automático no iOS */
+    color:var(--carvao);background:var(--fundo);
+    padding:14px 13px;border:1px solid var(--borda-forte);border-radius:9px;
+    width:100%;min-height:var(--toque);appearance:none;
+  }
+  select{
+    background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%236E6B66' d='M6 8 0 0h12z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center;background-size:11px;
+    padding-right:38px;
+  }
+  input:focus,textarea:focus,select:focus{
+    outline:none;border-color:var(--ouro);box-shadow:0 0 0 3px rgba(228,169,60,.2);
+  }
+  textarea{resize:vertical;min-height:84px;line-height:1.5}
+  .erro-campo{font-size:12.5px;color:var(--erro);font-weight:500}
+
+  /* ============ resumo ============ */
+  .resumo{
+    background:var(--superficie);border:1px solid var(--borda);border-radius:9px;
+    padding:14px 15px;margin-bottom:16px;font-size:15px;
+  }
+  .resumo div{display:flex;justify-content:space-between;gap:14px;padding:3px 0}
+  .resumo span{color:var(--fraco)}
+  .resumo b{font-weight:600;text-align:right}
+
+  /* ============ barra de ação fixa ============ */
+  .barra-acao{
+    position:fixed;left:0;right:0;bottom:0;z-index:40;
+    background:rgba(255,255,255,.96);
+    backdrop-filter:blur(10px);
+    border-top:1px solid var(--borda);
+    padding:12px max(16px,env(safe-area-inset-left)) calc(12px + env(safe-area-inset-bottom));
+  }
+  .barra-acao .dentro{max-width:640px;margin:0 auto}
+  .barra-acao.escondida{display:none}
+  .btn{
+    background:var(--ouro);color:var(--carvao);
+    font-family:'Archivo',sans-serif;font-weight:800;text-transform:uppercase;
+    letter-spacing:.03em;font-size:15px;
+    min-height:54px;padding:15px 24px;border:none;border-radius:9px;
+    cursor:pointer;width:100%;
+  }
+  .btn:active:not(:disabled){background:var(--ouro-claro)}
+  .btn:disabled{background:#EFEDE9;color:#B4B0AA;cursor:not-allowed}
+  .nota-btn{text-align:center;font-size:12.5px;color:var(--fraco);margin-top:8px;line-height:1.4}
+  .btn.secundario{
+    background:var(--fundo);border:1px solid var(--borda-forte);color:var(--carvao);
+    font-size:13px;min-height:var(--toque);padding:12px 18px;width:auto;
+  }
+
+  /* ============ confirmação ============ */
+  .confirmado{text-align:center;padding:44px 4px 20px}
+  .selo{
+    width:62px;height:62px;border-radius:50%;background:var(--ouro);
+    display:grid;place-items:center;margin:0 auto 20px;font-size:29px;color:var(--carvao);
+  }
+  .confirmado h2{
+    font-family:'Archivo',sans-serif;font-weight:800;text-transform:uppercase;
+    font-size:25px;line-height:1.1;color:var(--preto);margin-bottom:10px;
+  }
+  .confirmado h2 em{font-style:normal;color:var(--ouro)}
+  .confirmado > p{color:var(--fraco);font-size:15px;margin:0 auto 22px;max-width:38ch}
+  .cartao-conf{
+    text-align:left;border:1px solid var(--borda);border-radius:10px;
+    padding:16px 18px;background:var(--superficie);
+  }
+  .cartao-conf div{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:15px}
+  .cartao-conf span{color:var(--fraco)}
+  .cartao-conf b{font-weight:600;text-align:right}
+
+  /* ============ PIN do gestor ============ */
+  .folha{
+    position:fixed;inset:0;z-index:60;background:rgba(8,8,8,.5);
+    display:none;align-items:flex-end;
+  }
+  .folha.on{display:flex}
+  .folha .conteudo{
+    background:var(--fundo);width:100%;border-radius:16px 16px 0 0;
+    padding:24px 20px calc(24px + env(safe-area-inset-bottom));
+  }
+  .folha h3{
+    font-family:'Archivo',sans-serif;font-weight:800;text-transform:uppercase;
+    font-size:16px;margin-bottom:6px;
+  }
+  .folha p{font-size:14px;color:var(--fraco);margin-bottom:16px}
+  .folha input{text-align:center;font-size:22px;letter-spacing:.3em;font-variant-numeric:tabular-nums}
+  .folha .btn{margin-top:14px}
+
+  /* ============ gestor ============ */
+  .gestor{display:none}
+  .gestor.on{display:block}
+  .fita{
+    position:sticky;top:0;z-index:30;
+    background:var(--carvao);color:#fff;font-size:13px;
+    padding-top:env(safe-area-inset-top);
+  }
+  .fita .wrap{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:52px}
+  .fita b{color:var(--ouro);font-weight:600}
+  .fita button{
+    background:transparent;border:1px solid #3A3A3A;color:#fff;
+    font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
+    border-radius:7px;padding:9px 13px;min-height:40px;cursor:pointer;flex:none;
+  }
+  .lista-bloq{margin-top:4px}
+  .item-bloq{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+    padding:14px 0;border-bottom:1px solid var(--borda);font-size:15px;
+  }
+  .item-bloq:first-child{border-top:1px solid var(--borda)}
+  .item-bloq .desc{line-height:1.4}
+  .item-bloq .motivo{color:var(--fraco);font-size:13.5px;display:block}
+  .tipo{
+    display:inline-block;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;
+    padding:3px 7px;border-radius:5px;background:var(--ouro-fundo);color:var(--ouro-texto);
+    font-weight:700;margin-bottom:4px;
+  }
+  .remover{
+    background:none;border:none;color:var(--erro);cursor:pointer;
+    font-family:'Inter',sans-serif;font-size:14px;font-weight:600;
+    min-height:var(--toque);padding:0 2px;flex:none;
+  }
+  .vazio-lista{padding:18px 0;color:var(--fraco);font-size:15px}
+
+  footer{border-top:1px solid var(--borda);padding:22px 0 30px;margin-top:26px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;font-size:13px;color:var(--fraco)}
+  footer a{color:var(--carvao);min-height:var(--toque);display:inline-flex;align-items:center}
+
+  .oculto{display:none!important}
+  :focus-visible{outline:2px solid var(--ouro);outline-offset:2px}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto}}
+
+  .demo-fita{
+    background:var(--ouro-fundo);border-bottom:1px solid #F0DFB8;
+    padding:9px 0;font-size:12.5px;color:#6B5011;line-height:1.45;
+  }
+
+  /* ===================================================================
+     DESKTOP — a partir daqui é melhoria, não a base
+     =================================================================== */
+  @media(min-width:720px){
+    body{padding-bottom:0}
+    .wrap{max-width:720px;padding-left:24px;padding-right:24px}
+    .intro{padding:44px 0 24px}
+    h1{font-size:40px}
+    .bloco{padding:26px;border-radius:12px}
+    .bloco.colapsado{padding:18px 26px}
+    .horarios{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
+    .hora{min-height:48px;font-size:15px}
+    .dia{min-height:52px}
+    .grade{gap:5px}
+    .campos{grid-template-columns:1fr 1fr}
+    .campo.largo{grid-column:1/-1}
+    .barra-acao{
+      position:static;background:none;backdrop-filter:none;
+      border:none;padding:4px 0 40px;
+    }
+    .barra-acao .dentro{max-width:none}
+    .dia:hover:not(:disabled),.hora:hover:not(:disabled){border-color:var(--ouro);background:var(--ouro-fundo)}
+    .btn:hover:not(:disabled){background:var(--ouro-claro)}
+    .folha{align-items:center;justify-content:center}
+    .folha .conteudo{max-width:360px;border-radius:14px;padding:26px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================================================================
+     CONFIGURAÇÃO
+     =================================================================== -->
+<script>
+const CFG = {
+  URL_APPS_SCRIPT: "",          // vazio = MODO DEMO
+
+  HORA_INICIO: 8,
+  HORA_FIM:    18,
+  DURACAO_MIN: 30,
+  INTERVALO_MIN: 0,
+  DIAS_ATIVOS: [1,2,3,4,5],
+  ALMOCO: { inicio: "12:00", fim: "14:00" },
+  ANTECEDENCIA_MIN_HORAS: 4,
+  DIAS_A_FRENTE: 30,
+
+  FUSO: "America/Manaus",
+  FUSO_ROTULO: "Manaus (UTC−4)",
+  UTC_OFFSET: -4,
+
+  NOME: "Vext Mídia",
+  TITULO_REUNIAO: "Diagnóstico — 30 min",
+  PIN_GESTOR: "1234",
+
+  // true = só abre pra quem chega do formulário com token válido.
+  // false = agenda aberta pra qualquer um.
+  EXIGE_TOKEN: true,
+  URL_FORMULARIO: "diagnostico.html"
+};
+
+/* =====================================================================
+   PIXEL DA META — CADASTRE AQUI
+   ---------------------------------------------------------------------
+   Enquanto PIXEL_ID estiver vazio, nada é carregado e nada é disparado.
+   A página funciona normalmente sem o pixel.
+   ===================================================================== */
+const TRACK = {
+  PIXEL_ID: "",              // só os números. Ex.: "1234567890123456"
+
+  // Código de "Testar eventos" do Gerenciador.
+  // Serve pro evento do SERVIDOR (CAPI) aparecer na aba de teste.
+  // O evento do navegador aparece sozinho enquanto a aba estiver aberta.
+  // APAGUE depois de testar.
+  CODIGO_TESTE: "",
+
+  // Ligue e desligue cada botão aqui.
+  // Nomes entre parênteses = como aparecem no Gerenciador de Eventos.
+  EVENTOS: {
+    abriu_agenda:     { ativo:true,  nome:"ViewContent" },   // abriu a página
+    escolheu_dia:     { ativo:true,  nome:"AgendaDia"   },   // tocou num dia
+    escolheu_hora:    { ativo:true,  nome:"AgendaHora"  },   // tocou num horário
+    reuniao_marcada:  { ativo:true,  nome:"Schedule"    }    // confirmou — a conversão
+  },
+
+  // Valor estimado de uma reunião marcada. 0 = não envia valor.
+  VALOR_REUNIAO: 0,
+  MOEDA: "BRL"
+};
+</script>
+
+<!-- Código base do pixel. Só carrega se TRACK.PIXEL_ID estiver preenchido. -->
+<script>
+(function(){
+  if(!TRACK.PIXEL_ID) return;
+  !function(f,b,e,v,n,t,s){
+    if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)
+  }(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', TRACK.PIXEL_ID);
+})();
+</script>
+
+<div class="demo-fita" id="fitaDemo">
+  <div class="wrap"><b>Modo demonstração.</b> Horários gerados na própria página, sem ler o Google Agenda.</div>
+</div>
+
+<header id="topo">
+  <div class="wrap">
+    <span class="logo">VE<span>X</span>T</span>
+    <span class="fuso-topo" id="fusoTopo"></span>
+  </div>
+</header>
+
+<!-- =================== CLIENTE =================== -->
+<main id="areaCliente">
+<div class="wrap">
+
+  <div class="intro" id="intro">
+    <h1>Escolha o melhor <em>horário</em></h1>
+    <p id="introTexto">Conversa de 30 minutos por chamada de vídeo.</p>
+  </div>
+
+  <div class="passos" id="passos">
+    <div class="passo ativo" data-p="1"></div>
+    <div class="passo" data-p="2"></div>
+    <div class="passo" data-p="3"></div>
+  </div>
+  <p class="passo-txt" id="passoTxt">Passo 1 de 3 — dia</p>
+
+  <!-- passo 1 -->
+  <div class="bloco" id="blocoDia">
+    <div class="cabeca">
+      <div>
+        <div class="rotulo">Dia</div>
+        <div class="valor-colapsado" id="vDia">—</div>
+      </div>
+      <button class="alterar oculto" id="altDia" type="button">Alterar</button>
+    </div>
+    <p class="ajuda">Dias com ponto dourado têm horário livre.</p>
+    <div class="corpo">
+      <div class="mes">
+        <strong id="rotuloMes"></strong>
+        <div class="nav-mes">
+          <button id="mesAnt" type="button" aria-label="Mês anterior">‹</button>
+          <button id="mesProx" type="button" aria-label="Próximo mês">›</button>
+        </div>
+      </div>
+      <div class="grade" id="gradeDias"></div>
+    </div>
+  </div>
+
+  <!-- passo 2 -->
+  <div class="bloco inativo" id="blocoHora">
+    <div class="cabeca">
+      <div>
+        <div class="rotulo">Horário</div>
+        <div class="valor-colapsado" id="vHora">—</div>
+      </div>
+      <button class="alterar oculto" id="altHora" type="button">Alterar</button>
+    </div>
+    <p class="ajuda" id="ajudaHora">Escolha o dia primeiro.</p>
+    <div class="corpo">
+      <div id="listaHorarios"></div>
+      <div class="aviso-fuso oculto" id="avisoFuso"></div>
+    </div>
+  </div>
+
+  <!-- passo 3 -->
+  <div class="bloco inativo" id="blocoDados">
+    <div class="cabeca">
+      <div class="rotulo">Seus dados</div>
+    </div>
+    <p class="ajuda">Envio a confirmação e o link da chamada por e-mail.</p>
+    <div class="corpo">
+      <div class="resumo oculto" id="resumo">
+        <div><span>Reunião</span><b id="rConv">Diagnóstico</b></div>
+        <div><span>Data</span><b id="rData">—</b></div>
+        <div><span>Horário</span><b id="rHora">—</b></div>
+      </div>
+
+      <div class="campos">
+        <div class="campo largo">
+          <label for="fNome">Nome completo</label>
+          <input id="fNome" type="text" autocomplete="name" autocapitalize="words" enterkeyhint="next">
+          <span class="erro-campo oculto" id="eNome">Informe seu nome.</span>
+        </div>
+        <div class="campo">
+          <label for="fEmail">E-mail</label>
+          <input id="fEmail" type="email" inputmode="email" autocomplete="email"
+                 autocapitalize="none" spellcheck="false" enterkeyhint="next">
+          <span class="erro-campo oculto" id="eEmail">E-mail inválido.</span>
+        </div>
+        <div class="campo">
+          <label for="fZap">WhatsApp</label>
+          <input id="fZap" type="tel" inputmode="numeric" autocomplete="tel"
+                 placeholder="(92) 90000-0000" enterkeyhint="next">
+          <span class="erro-campo oculto" id="eZap">Informe o número com DDD.</span>
+        </div>
+        <div class="campo largo">
+          <label for="fEmpresa">Empresa <i>— opcional</i></label>
+          <input id="fEmpresa" type="text" autocomplete="organization" autocapitalize="words">
+        </div>
+        <div class="campo largo">
+          <label for="fObs">Algo que eu deva saber antes <i>— opcional</i></label>
+          <textarea id="fObs" maxlength="500" enterkeyhint="done"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- acesso sem token -->
+  <div class="oculto" id="blocoBloqueado">
+    <div class="confirmado">
+      <div class="selo" style="background:var(--superficie);border:1px solid var(--borda);color:var(--fraco)">—</div>
+      <h2>Antes de <em>agendar</em></h2>
+      <p>A agenda abre depois do diagnóstico. São oito perguntas rápidas sobre a sua empresa — assim eu chego na conversa já sabendo do que a gente vai falar.</p>
+      <a class="btn" id="linkForm" style="display:block;text-decoration:none;line-height:24px" href="#">Fazer o diagnóstico</a>
+    </div>
+  </div>
+
+  <!-- confirmação -->
+  <div class="oculto" id="blocoOk">
+    <div class="confirmado">
+      <div class="selo">✓</div>
+      <h2>Reunião <em>confirmada</em></h2>
+      <p>Enviei a confirmação com o link da chamada para o seu e-mail. O convite também já está na sua agenda.</p>
+      <div class="cartao-conf">
+        <div><span>Data</span><b id="cData">—</b></div>
+        <div><span>Horário</span><b id="cHora">—</b></div>
+        <div><span>Duração</span><b id="cDur">30 minutos</b></div>
+        <div><span>Fuso</span><b id="cFuso">—</b></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<!-- barra fixa -->
+<div class="barra-acao" id="barraAcao">
+  <div class="dentro">
+    <button class="btn" id="btnConfirmar" disabled>Confirmar agendamento</button>
+    <p class="nota-btn" id="notaBtn">Escolha dia e horário para continuar.</p>
+  </div>
+</div>
+
+<!-- =================== GESTOR =================== -->
+<div class="fita oculto" id="fitaGestor">
+  <div class="wrap">
+    <span>Painel do gestor — <b>bloqueios</b></span>
+    <button id="sairGestor" type="button">Ver como cliente</button>
+  </div>
+</div>
+
+<div class="gestor" id="areaGestor">
+<div class="wrap">
+
+  <div class="intro">
+    <h1>Bloquear <em>horário</em></h1>
+    <p>Para compromisso pessoal que você não quer criar como evento. Reunião já marcada no Google Agenda é lida sozinha e não precisa entrar aqui.</p>
+  </div>
+
+  <div class="bloco">
+    <div class="rotulo">Novo bloqueio</div>
+    <p class="ajuda">Sai da grade do cliente na hora.</p>
+    <div class="campos">
+      <div class="campo largo">
+        <label for="bTipo">Tipo</label>
+        <select id="bTipo">
+          <option value="dia">Dia inteiro</option>
+          <option value="faixa">Faixa de horário</option>
+          <option value="recorrente">Toda semana neste dia</option>
+        </select>
+      </div>
+      <div class="campo largo">
+        <label for="bData">Data</label>
+        <input id="bData" type="date">
+      </div>
+      <div class="campo oculto" id="wrapIni">
+        <label for="bIni">Das</label>
+        <input id="bIni" type="time" value="08:00" step="1800">
+      </div>
+      <div class="campo oculto" id="wrapFim">
+        <label for="bFim">Até</label>
+        <input id="bFim" type="time" value="18:00" step="1800">
+      </div>
+      <div class="campo largo">
+        <label for="bMotivo">Motivo <i>— só você vê</i></label>
+        <input id="bMotivo" type="text" placeholder="Médico, viagem, folga...">
+      </div>
+    </div>
+    <div style="margin-top:18px">
+      <button class="btn" id="btnBloquear" type="button">Bloquear</button>
+    </div>
+  </div>
+
+  <div class="bloco">
+    <div class="rotulo">Próximos 30 dias</div>
+    <p class="ajuda">Seus bloqueios manuais.</p>
+    <div class="lista-bloq" id="listaBloqueios"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- folha do PIN -->
+<div class="folha" id="folhaPin">
+  <div class="conteudo">
+    <h3>Acesso do gestor</h3>
+    <p>Digite o PIN para abrir o painel de bloqueios.</p>
+    <input id="pinCampo" type="tel" inputmode="numeric" maxlength="6" placeholder="••••">
+    <span class="erro-campo oculto" id="pinErro">PIN incorreto.</span>
+    <button class="btn" id="pinOk" type="button">Entrar</button>
+    <button class="btn secundario" id="pinCancelar" type="button"
+            style="width:100%;margin-top:8px">Cancelar</button>
+  </div>
+</div>
+
+<footer id="rodape">
+  <div class="wrap">
+    <span id="rodapeNome">Vext Mídia — Manaus/AM</span>
+    <a href="privacidade.html">Política de Privacidade</a>
+  </div>
+</footer>
+
+<script>
+/* =====================================================================
+   ESTADO
+   ===================================================================== */
+const S = {
+  mesRef: new Date(),
+  diaSel: null,
+  horaSel: null,
+  ocupadosCache: {},
+  bloqueios: [],
+  enviando: false
+};
+const $ = id => document.getElementById(id);
+const DEMO = !CFG.URL_APPS_SCRIPT;
+
+/* =====================================================================
+   PIXEL — disparo dos eventos
+   O eid é o mesmo no navegador e no servidor. É ele que faz a Meta
+   entender que foi UMA ação, e não duas.
+   ===================================================================== */
+function novoEid(){
+  return "vx-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,10);
+}
+function cookie(nome){
+  const m = document.cookie.match("(^|;)\\s*" + nome + "\\s*=\\s*([^;]+)");
+  return m ? m.pop() : "";
+}
+/* _fbc não existe no primeiro acesso: monta a partir do fbclid da URL */
+function fbcAtual(){
+  const c = cookie("_fbp") ? cookie("_fbc") : cookie("_fbc");
+  if(c) return c;
+  const id = new URLSearchParams(location.search).get("fbclid");
+  return id ? "fb.1." + Date.now() + "." + id : "";
+}
+function disparar(chave, dados, eid){
+  const cfg = TRACK.EVENTOS[chave];
+  if(!TRACK.PIXEL_ID || !cfg || !cfg.ativo) return;
+  if(typeof fbq !== "function") return;
+
+  const padrao = ["ViewContent","Schedule","Lead","Contact","CompleteRegistration",
+                  "InitiateCheckout","Purchase","Subscribe","SubmitApplication"];
+  const metodo = padrao.indexOf(cfg.nome) !== -1 ? "track" : "trackCustom";
+  const opcoes = eid ? { eventID: eid } : {};
+
+  try{ fbq(metodo, cfg.nome, dados || {}, opcoes); }
+  catch(err){ /* pixel nunca derruba a página */ }
+}
+
+/* =====================================================================
+   DATA E FUSO
+   ===================================================================== */
+const NOMES_MES = ["janeiro","fevereiro","março","abril","maio","junho",
+                   "julho","agosto","setembro","outubro","novembro","dezembro"];
+const NOMES_DIA = ["dom","seg","ter","qua","qui","sex","sáb"];
+
+const chave = d => d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0")
+                   + "-" + String(d.getDate()).padStart(2,"0");
+function deChave(s){ const [a,m,d] = s.split("-").map(Number); return new Date(a,m-1,d); }
+function dataCurta(s){
+  const d = deChave(s);
+  return NOMES_DIA[d.getDay()] + ", " + d.getDate() + " de " + NOMES_MES[d.getMonth()];
+}
+const minutos = h => { const [a,b] = h.split(":").map(Number); return a*60+b; };
+const paraHHMM = m => String(Math.floor(m/60)).padStart(2,"0") + ":" + String(m%60).padStart(2,"0");
+function agoraNoFuso(){
+  const a = new Date();
+  return new Date(a.getTime() + (CFG.UTC_OFFSET*60 + a.getTimezoneOffset())*60000);
+}
+
+/* =====================================================================
+   GRADE
+   ===================================================================== */
+function todosOsSlots(){
+  const passo = CFG.DURACAO_MIN + CFG.INTERVALO_MIN;
+  const fim = CFG.HORA_FIM*60 - CFG.DURACAO_MIN;
+  const out = [];
+  for(let m = CFG.HORA_INICIO*60; m <= fim; m += passo){
+    if(CFG.ALMOCO){
+      const ai = minutos(CFG.ALMOCO.inicio), af = minutos(CFG.ALMOCO.fim);
+      if(m < af && m + CFG.DURACAO_MIN > ai) continue;
+    }
+    out.push(paraHHMM(m));
+  }
+  return out;
+}
+const diaUtil = d => CFG.DIAS_ATIVOS.includes(d.getDay());
+
+function dentroDaJanela(s){
+  const hoje = agoraNoFuso(); hoje.setHours(0,0,0,0);
+  const lim = new Date(hoje); lim.setDate(lim.getDate() + CFG.DIAS_A_FRENTE);
+  const d = deChave(s);
+  return d >= hoje && d <= lim;
+}
+function muitoTarde(s,h){
+  const alvo = deChave(s); alvo.setMinutes(minutos(h));
+  return (alvo - agoraNoFuso())/3600000 < CFG.ANTECEDENCIA_MIN_HORAS;
+}
+function bloqueadoManual(s,h){
+  const dow = deChave(s).getDay();
+  return S.bloqueios.some(b => {
+    if(b.tipo === "recorrente"){ if(deChave(b.data).getDay() !== dow) return false; }
+    else if(b.data !== s) return false;
+    if(b.tipoOriginal === "dia") return true;
+    const m = minutos(h);
+    return m < minutos(b.fim) && m + CFG.DURACAO_MIN > minutos(b.ini);
+  });
+}
+function diaTodoBloqueado(s){
+  const dow = deChave(s).getDay();
+  return S.bloqueios.some(b =>
+    b.tipoOriginal === "dia" &&
+    (b.tipo === "recorrente" ? deChave(b.data).getDay() === dow : b.data === s)
+  );
+}
+
+/* =====================================================================
+   BACK-END
+   ===================================================================== */
+async function buscarOcupados(s){
+  if(S.ocupadosCache[s]) return S.ocupadosCache[s];
+  if(DEMO){
+    const semente = s.split("-").reduce((a,b)=>a+Number(b),0);
+    const ocup = todosOsSlots().filter((_,i) => ((i*7 + semente) % 5) === 0);
+    await new Promise(r => setTimeout(r,200));
+    S.ocupadosCache[s] = ocup;
+    return ocup;
+  }
+  try{
+    const r = await fetch(CFG.URL_APPS_SCRIPT + "?acao=ocupados&dia=" + s);
+    const j = await r.json();
+    S.ocupadosCache[s] = j.ocupados || [];
+  }catch(e){ S.ocupadosCache[s] = []; }
+  return S.ocupadosCache[s];
+}
+async function gravarAgendamento(dados){
+  if(DEMO){ await new Promise(r => setTimeout(r,700)); return {ok:true}; }
+  try{
+    // text/plain: application/json quebra por CORS no Apps Script
+    const r = await fetch(CFG.URL_APPS_SCRIPT,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body: JSON.stringify(Object.assign({acao:"agendar"},dados))
+    });
+    return await r.json();
+  }catch(e){ return {ok:false}; }
+}
+
+/* =====================================================================
+   CALENDÁRIO
+   ===================================================================== */
+function montarCalendario(){
+  const ref = S.mesRef;
+  $("rotuloMes").textContent = NOMES_MES[ref.getMonth()] + " " + ref.getFullYear();
+  const g = $("gradeDias");
+  g.innerHTML = "";
+
+  NOMES_DIA.forEach(n => {
+    const e = document.createElement("div");
+    e.className = "dia-nome"; e.textContent = n;
+    g.appendChild(e);
+  });
+
+  const primeiro = new Date(ref.getFullYear(), ref.getMonth(), 1);
+  const ultimo = new Date(ref.getFullYear(), ref.getMonth()+1, 0);
+
+  for(let i=0;i<primeiro.getDay();i++){
+    const e = document.createElement("div"); e.className = "dia vazio"; g.appendChild(e);
+  }
+  for(let d=1; d<=ultimo.getDate(); d++){
+    const data = new Date(ref.getFullYear(), ref.getMonth(), d);
+    const s = chave(data);
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "dia"; b.textContent = d;
+    const livre = diaUtil(data) && dentroDaJanela(s) && !diaTodoBloqueado(s);
+    b.disabled = !livre;
+    if(livre) b.classList.add("tem-vaga");
+    if(S.diaSel === s) b.classList.add("sel");
+    b.addEventListener("click", () => escolherDia(s));
+    g.appendChild(b);
+  }
+
+  const hoje = agoraNoFuso();
+  $("mesAnt").disabled = (ref.getFullYear() === hoje.getFullYear() && ref.getMonth() <= hoje.getMonth());
+}
+$("mesAnt").addEventListener("click", () => {
+  S.mesRef = new Date(S.mesRef.getFullYear(), S.mesRef.getMonth()-1, 1);
+  montarCalendario();
+});
+$("mesProx").addEventListener("click", () => {
+  S.mesRef = new Date(S.mesRef.getFullYear(), S.mesRef.getMonth()+1, 1);
+  montarCalendario();
+});
+
+/* =====================================================================
+   PASSOS — colapsar o que já foi resolvido
+   ===================================================================== */
+const TXT_PASSO = {1:"Passo 1 de 3 — dia", 2:"Passo 2 de 3 — horário", 3:"Passo 3 de 3 — seus dados"};
+function marcarPasso(n){
+  document.querySelectorAll(".passo").forEach(p => {
+    const i = Number(p.dataset.p);
+    p.classList.toggle("ativo", i === n);
+    p.classList.toggle("feito", i < n);
+  });
+  $("passoTxt").textContent = TXT_PASSO[n];
+}
+function colapsar(bloco, botao, valorEl, texto){
+  $(bloco).classList.add("colapsado");
+  $(botao).classList.remove("oculto");
+  $(valorEl).textContent = texto;
+}
+function expandir(bloco, botao){
+  $(bloco).classList.remove("colapsado");
+  $(botao).classList.add("oculto");
+}
+$("altDia").addEventListener("click", () => {
+  expandir("blocoDia","altDia");
+  marcarPasso(1);
+  $("blocoDia").scrollIntoView({block:"start", behavior:"smooth"});
+});
+$("altHora").addEventListener("click", () => {
+  expandir("blocoHora","altHora");
+  marcarPasso(2);
+  $("blocoHora").scrollIntoView({block:"start", behavior:"smooth"});
+});
+
+/* =====================================================================
+   SELEÇÃO
+   ===================================================================== */
+async function escolherDia(s){
+  S.diaSel = s;
+  S.horaSel = null;
+  montarCalendario();
+
+  disparar("escolheu_dia", { content_name:"Agenda Vext", dia:s });
+
+  colapsar("blocoDia","altDia","vDia", dataCurta(s));
+  expandir("blocoHora","altHora");
+  marcarPasso(2);
+
+  $("blocoHora").classList.remove("inativo");
+  $("ajudaHora").textContent = "Horários de " + CFG.FUSO_ROTULO + ".";
+  $("listaHorarios").innerHTML = '<p class="carregando">Lendo a agenda…</p>';
+  $("blocoDados").classList.add("inativo");
+  $("resumo").classList.add("oculto");
+  atualizarBotao();
+
+  const ocupados = await buscarOcupados(s);
+  if(S.diaSel !== s) return;
+  montarHorarios(s, ocupados);
+  $("blocoHora").scrollIntoView({block:"start", behavior:"smooth"});
+}
+
+function montarHorarios(s, ocupados){
+  const alvo = $("listaHorarios");
+  alvo.innerHTML = "";
+  let algum = false;
+
+  [{nome:"Manhã",de:0,ate:720},{nome:"Tarde",de:720,ate:1440}].forEach(t => {
+    const slots = todosOsSlots().filter(h => minutos(h) >= t.de && minutos(h) < t.ate);
+    if(!slots.length) return;
+
+    const cx = document.createElement("div"); cx.className = "turno";
+    const h4 = document.createElement("h4"); h4.textContent = t.nome; cx.appendChild(h4);
+    const grade = document.createElement("div"); grade.className = "horarios";
+
+    slots.forEach(h => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "hora"; b.textContent = h;
+      const fora = ocupados.includes(h) || muitoTarde(s,h) || bloqueadoManual(s,h);
+      b.disabled = fora;
+      if(!fora) algum = true;
+      if(S.horaSel === h) b.classList.add("sel");
+      b.addEventListener("click", () => escolherHora(h));
+      grade.appendChild(b);
+    });
+    cx.appendChild(grade);
+    alvo.appendChild(cx);
+  });
+
+  if(!algum){
+    alvo.innerHTML = '<p class="carregando">Nenhum horário livre neste dia. Toque em Alterar acima e escolha outro.</p>';
+  }
+  mostrarAvisoFuso();
+}
+
+function escolherHora(h){
+  S.horaSel = h;
+  const fim = paraHHMM(minutos(h) + CFG.DURACAO_MIN);
+
+  disparar("escolheu_hora", { content_name:"Agenda Vext", dia:S.diaSel, hora:h });
+
+  colapsar("blocoHora","altHora","vHora", h + " — " + fim);
+  marcarPasso(3);
+
+  $("blocoDados").classList.remove("inativo");
+  $("resumo").classList.remove("oculto");
+  $("rData").textContent = dataCurta(S.diaSel);
+  $("rHora").textContent = h + " — " + fim;
+  atualizarBotao();
+  $("blocoDados").scrollIntoView({block:"start", behavior:"smooth"});
+}
+
+function mostrarAvisoFuso(){
+  const caixa = $("avisoFuso");
+  const meu = -new Date().getTimezoneOffset()/60;
+  if(meu === CFG.UTC_OFFSET){ caixa.classList.add("oculto"); return; }
+  const dif = meu - CFG.UTC_OFFSET;
+  caixa.textContent = "Estes horários são de " + CFG.FUSO_ROTULO
+    + ". No seu fuso cada um cai " + Math.abs(dif) + "h "
+    + (dif > 0 ? "mais tarde" : "mais cedo") + ".";
+  caixa.classList.remove("oculto");
+}
+
+/* =====================================================================
+   VALIDAÇÃO
+   ===================================================================== */
+const emailOk = v => /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v);
+function validos(){
+  return $("fNome").value.trim().length >= 3
+      && emailOk($("fEmail").value.trim())
+      && $("fZap").value.replace(/\D/g,"").length >= 10;
+}
+function atualizarBotao(){
+  const pronto = S.diaSel && S.horaSel && validos();
+  $("btnConfirmar").disabled = !pronto || S.enviando;
+  if(!S.diaSel) $("notaBtn").textContent = "Escolha o dia para continuar.";
+  else if(!S.horaSel) $("notaBtn").textContent = "Escolha o horário para continuar.";
+  else if(!validos()) $("notaBtn").textContent = "Preencha nome, e-mail e WhatsApp.";
+  else $("notaBtn").textContent = "Você recebe a confirmação por e-mail em seguida.";
+}
+
+["fNome","fEmail","fZap"].forEach(id => {
+  $(id).addEventListener("input", atualizarBotao);
+  $(id).addEventListener("blur", () => {
+    const mapa = {fNome:"eNome", fEmail:"eEmail", fZap:"eZap"};
+    const v = $(id).value.trim();
+    let ruim = false;
+    if(id === "fNome")  ruim = v.length > 0 && v.length < 3;
+    if(id === "fEmail") ruim = v.length > 0 && !emailOk(v);
+    if(id === "fZap")   ruim = v.length > 0 && v.replace(/\D/g,"").length < 10;
+    $(mapa[id]).classList.toggle("oculto", !ruim);
+  });
+});
+$("fZap").addEventListener("input", e => {
+  let v = e.target.value.replace(/\D/g,"").slice(0,11);
+  if(v.length > 6)      v = "(" + v.slice(0,2) + ") " + v.slice(2,7) + "-" + v.slice(7);
+  else if(v.length > 2) v = "(" + v.slice(0,2) + ") " + v.slice(2);
+  else if(v.length > 0) v = "(" + v;
+  e.target.value = v;
+});
+
+/* =====================================================================
+   ENVIO
+   ===================================================================== */
+$("btnConfirmar").addEventListener("click", async () => {
+  if(S.enviando) return;
+  S.enviando = true;
+  const btn = $("btnConfirmar");
+  btn.disabled = true;
+  btn.textContent = "Confirmando…";
+  if(document.activeElement) document.activeElement.blur();   // fecha teclado
+
+  // reconfere: o slot pode ter sido tomado com a página aberta
+  delete S.ocupadosCache[S.diaSel];
+  const ocupados = await buscarOcupados(S.diaSel);
+  if(ocupados.includes(S.horaSel)){
+    S.enviando = false;
+    btn.textContent = "Confirmar agendamento";
+    $("notaBtn").innerHTML = '<span style="color:var(--erro)">Esse horário acabou de ser reservado. Escolha outro.</span>';
+    S.horaSel = null;
+    expandir("blocoHora","altHora");
+    montarHorarios(S.diaSel, ocupados);
+    marcarPasso(2);
+    $("blocoHora").scrollIntoView({block:"start", behavior:"smooth"});
+    btn.disabled = true;
+    return;
+  }
+
+  const p = new URLSearchParams(location.search);
+
+  // um eid por agendamento, gerado ANTES do envio:
+  // vai pro servidor e é o mesmo usado no disparo do navegador
+  S.eid = novoEid();
+
+  const r = await gravarAgendamento({
+    dia:S.diaSel, hora:S.horaSel, duracao:CFG.DURACAO_MIN, fuso:CFG.FUSO,
+    nome:$("fNome").value.trim(), email:$("fEmail").value.trim(),
+    whatsapp:$("fZap").value.trim(), empresa:$("fEmpresa").value.trim(),
+    obs:$("fObs").value.trim(),
+    origem:p.get("utm_content") || "direto",
+    lead_id:p.get("lead") || "",
+    token:S.token || p.get("token") || "",
+
+    // dados de rastreamento para a API de Conversões
+    eid: S.eid,
+    evento_nome: TRACK.EVENTOS.reuniao_marcada.nome,
+    fbp: cookie("_fbp"),
+    fbc: fbcAtual(),
+    codigo_teste: TRACK.CODIGO_TESTE,
+    ua: navigator.userAgent,
+    url: location.href,
+    utm_source: p.get("utm_source") || "",
+    utm_medium: p.get("utm_medium") || "",
+    utm_campaign: p.get("utm_campaign") || ""
+  });
+
+  S.enviando = false;
+
+  if(r && r.ok){
+    // conversão: dispara SÓ depois do servidor confirmar a gravação
+    const carga = { content_name:"Reunião agendada", dia:S.diaSel, hora:S.horaSel };
+    if(TRACK.VALOR_REUNIAO > 0){
+      carga.value = TRACK.VALOR_REUNIAO;
+      carga.currency = TRACK.MOEDA;
+    }
+    disparar("reuniao_marcada", carga, S.eid);
+
+    ["intro","passos","passoTxt","blocoDia","blocoHora","blocoDados"]
+      .forEach(id => $(id).classList.add("oculto"));
+    $("blocoOk").classList.remove("oculto");
+    $("barraAcao").classList.add("escondida");
+    document.body.classList.add("sem-barra");
+    $("cData").textContent = dataCurta(S.diaSel);
+    $("cHora").textContent = S.horaSel + " — " + paraHHMM(minutos(S.horaSel) + CFG.DURACAO_MIN);
+    $("cDur").textContent = CFG.DURACAO_MIN + " minutos";
+    $("cFuso").textContent = CFG.FUSO_ROTULO;
+    window.scrollTo({top:0, behavior:"smooth"});
+  }else{
+    btn.disabled = false;
+    btn.textContent = "Confirmar agendamento";
+    $("notaBtn").innerHTML = '<span style="color:var(--erro)">Não consegui gravar agora. Tente de novo ou fale comigo no WhatsApp.</span>';
+  }
+});
+
+/* =====================================================================
+   GESTOR
+   ===================================================================== */
+$("bTipo").addEventListener("change", e => {
+  const faixa = e.target.value === "faixa";
+  $("wrapIni").classList.toggle("oculto", !faixa);
+  $("wrapFim").classList.toggle("oculto", !faixa);
+});
+$("btnBloquear").addEventListener("click", () => {
+  const tipo = $("bTipo").value;
+  const data = $("bData").value;
+  if(!data){ $("bData").focus(); return; }
+  S.bloqueios.push({
+    tipo: tipo === "recorrente" ? "recorrente" : tipo,
+    tipoOriginal: tipo === "faixa" ? "faixa" : "dia",
+    data, ini:$("bIni").value, fim:$("bFim").value,
+    motivo: $("bMotivo").value.trim() || "Indisponível"
+  });
+  S.ocupadosCache = {};
+  $("bMotivo").value = "";
+  listarBloqueios();
+  montarCalendario();
+});
+function listarBloqueios(){
+  const alvo = $("listaBloqueios");
+  alvo.innerHTML = "";
+  if(!S.bloqueios.length){
+    alvo.innerHTML = '<p class="vazio-lista">Nenhum bloqueio manual. Grade liberada das '
+      + String(CFG.HORA_INICIO).padStart(2,"0") + ':00 às ' + CFG.HORA_FIM + ':00.</p>';
+    return;
+  }
+  S.bloqueios.forEach((b,i) => {
+    const desc =
+      b.tipo === "recorrente" ? "Toda " + NOMES_DIA[deChave(b.data).getDay()] + " — dia inteiro" :
+      b.tipoOriginal === "dia" ? dataCurta(b.data) + " — dia inteiro" :
+      dataCurta(b.data) + " — " + b.ini + " às " + b.fim;
+
+    const linha = document.createElement("div");
+    linha.className = "item-bloq";
+    linha.innerHTML = '<span class="desc"><span class="tipo">Bloqueio</span><br>' + desc
+      + '<span class="motivo">' + b.motivo + '</span></span>';
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "remover"; btn.textContent = "remover";
+    btn.addEventListener("click", () => {
+      S.bloqueios.splice(i,1);
+      S.ocupadosCache = {};
+      listarBloqueios(); montarCalendario();
+    });
+    linha.appendChild(btn);
+    alvo.appendChild(linha);
+  });
+}
+function abrirGestor(){
+  $("areaCliente").style.display = "none";
+  $("barraAcao").classList.add("escondida");
+  document.body.classList.add("sem-barra");
+  $("fitaDemo").classList.add("oculto");
+  $("topo").classList.add("oculto");
+  $("fitaGestor").classList.remove("oculto");
+  $("areaGestor").classList.add("on");
+  $("bData").min = chave(agoraNoFuso());
+  window.scrollTo(0,0);
+}
+$("sairGestor").addEventListener("click", () => {
+  $("areaGestor").classList.remove("on");
+  $("fitaGestor").classList.add("oculto");
+  $("topo").classList.remove("oculto");
+  if(DEMO) $("fitaDemo").classList.remove("oculto");
+  $("areaCliente").style.display = "";
+  $("barraAcao").classList.remove("escondida");
+  document.body.classList.remove("sem-barra");
+  window.scrollTo(0,0);
+});
+
+/* folha do PIN */
+function pedirPin(){
+  $("folhaPin").classList.add("on");
+  setTimeout(() => $("pinCampo").focus(), 120);
+}
+$("pinOk").addEventListener("click", () => {
+  if($("pinCampo").value === CFG.PIN_GESTOR){
+    $("folhaPin").classList.remove("on");
+    $("pinErro").classList.add("oculto");
+    abrirGestor();
+  }else{
+    $("pinErro").classList.remove("oculto");
+    $("pinCampo").value = "";
+  }
+});
+$("pinCampo").addEventListener("keydown", e => { if(e.key === "Enter") $("pinOk").click(); });
+$("pinCancelar").addEventListener("click", () => $("folhaPin").classList.remove("on"));
+
+/* =====================================================================
+   INÍCIO
+   ===================================================================== */
+(function iniciar(){
+  const p = new URLSearchParams(location.search);
+  if(!DEMO) $("fitaDemo").classList.add("oculto");
+
+  $("fusoTopo").textContent = "Horários de " + CFG.FUSO_ROTULO;
+  $("rConv").textContent = CFG.TITULO_REUNIAO;
+  $("rodapeNome").textContent = CFG.NOME + " — Manaus/AM";
+  $("introTexto").textContent = "Conversa de " + CFG.DURACAO_MIN + " minutos por chamada de vídeo.";
+
+  if(p.get("nome"))    $("fNome").value = p.get("nome");
+  if(p.get("email"))   $("fEmail").value = p.get("email");
+  if(p.get("zap"))     $("fZap").value = p.get("zap");
+  if(p.get("empresa")) $("fEmpresa").value = p.get("empresa");
+
+  S.mesRef = agoraNoFuso();
+  montarCalendario();
+  marcarPasso(1);
+  atualizarBotao();
+
+  // PageView + abertura da agenda
+  if(TRACK.PIXEL_ID && typeof fbq === "function"){
+    try{ fbq("track","PageView"); }catch(e){}
+  }
+  disparar("abriu_agenda", {
+    content_name: "Agenda Vext",
+    content_category: "agendamento",
+    origem: p.get("utm_content") || "direto"
+  });
+
+  if(p.get("gestor") === "1") pedirPin();
+
+  /* portão: só passa quem vem do formulário com token válido */
+  if(CFG.EXIGE_TOKEN && p.get("gestor") !== "1"){
+    S.token = p.get("token") || "";
+    validarToken(S.token);
+  }
+})();
+
+function bloquear(){
+  ["intro","passos","passoTxt","blocoDia","blocoHora","blocoDados"]
+    .forEach(id => $(id).classList.add("oculto"));
+  $("barraAcao").classList.add("escondida");
+  document.body.classList.add("sem-barra");
+  $("linkForm").href = CFG.URL_FORMULARIO;
+  $("blocoBloqueado").classList.remove("oculto");
+}
+
+async function validarToken(token){
+  if(!token){ bloquear(); return; }
+
+  // sem back-end (modo demo) não há o que validar: passa
+  if(DEMO) return;
+
+  try{
+    const r = await fetch(CFG.URL_APPS_SCRIPT + "?acao=validar&token=" + encodeURIComponent(token));
+    const j = await r.json();
+    if(!j.ok || !j.valido) bloquear();
+  }catch(err){
+    // servidor fora do ar: não trava o cliente que veio do formulário
+  }
+}
+</script>
+
+</body>
+</html>
