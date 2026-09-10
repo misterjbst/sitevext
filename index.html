@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vext Mídia — Gestão de tráfego pago para empresas que já faturam</title>
+<meta name="description" content="Gestão de tráfego pago em Manaus para empresas com faturamento acima de R$ 40 mil por mês. Diagnóstico gratuito em 8 perguntas.">
+<meta property="og:title" content="Vext Mídia — Tráfego pago que vira cliente">
+<meta property="og:description" content="Para empresas que já faturam acima de R$ 40 mil por mês e cansaram de pagar por curtida.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- =========================================================
+     TAGS DE RASTREAMENTO — colar aqui antes de subir
+     1. Tag do Google Ads (gtag.js)
+     2. Pixel do Meta
+     ========================================================= -->
+
+<!-- ===================================================================
+     BOTÕES DE AÇÃO: os 4 apontam para diagnostico.html
+     (topo, hero, CTA final e rodapé). Se renomear o formulário,
+     troque nos 4 lugares — busque por diagnostico.html
+     =================================================================== -->
+<style>
+  :root{
+    --preto:#080808;
+    --carvao:#131313;
+    --borda:#242424;
+    --ouro:#E4A93C;
+    --ouro-claro:#F5D48A;
+    --texto:#D6D6D6;
+    --fraco:#8A8A8A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--preto);
+    color:var(--texto);
+    font-family:'Inter',system-ui,sans-serif;
+    font-size:16.5px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+  .estreito{max-width:760px}
+
+  h1,h2,h3,.arch{font-family:'Archivo',sans-serif;text-transform:uppercase;font-weight:800}
+  h1 em,h2 em,h3 em{font-style:normal;color:var(--ouro)}
+  p{max-width:64ch}
+  strong{color:#fff;font-weight:600}
+
+  .campo{
+    color:var(--ouro);
+    border-bottom:1px dashed var(--ouro);
+    padding:0 2px;font-weight:500;white-space:nowrap;
+  }
+
+  /* ---------- botões ---------- */
+  .btn{
+    display:inline-block;
+    background:linear-gradient(100deg,var(--ouro) 0%,var(--ouro-claro) 100%);
+    color:#0A0A0A;
+    font-family:'Archivo',sans-serif;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    font-size:15px;
+    padding:17px 34px;
+    border-radius:4px;
+    text-decoration:none;
+    transition:filter .18s ease;
+  }
+  .btn:hover{filter:brightness(1.12)}
+  .btn-nota{display:block;margin-top:12px;font-size:13.5px;color:var(--fraco)}
+
+  /* ---------- topo ---------- */
+  .topo{
+    position:sticky;top:0;z-index:20;
+    background:rgba(8,8,8,.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--borda);
+  }
+  .topo .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .logo{
+    font-family:'Archivo',sans-serif;font-weight:800;
+    font-size:19px;letter-spacing:.16em;color:var(--ouro);
+  }
+  .topo .btn{padding:11px 22px;font-size:13px}
+  @media(max-width:560px){.topo .btn{display:none}}
+
+  /* ---------- hero ---------- */
+  .hero{padding:96px 0 88px;border-bottom:1px solid var(--borda)}
+  .hero .eixo{
+    font-size:14px;color:var(--ouro);font-weight:500;
+    margin-bottom:26px;
+  }
+  h1{
+    font-size:clamp(36px,7.4vw,74px);
+    line-height:.98;
+    letter-spacing:-.02em;
+    color:#fff;
+    max-width:14ch;
+  }
+  .hero .lead{
+    margin-top:28px;
+    font-size:clamp(17px,2.4vw,20px);
+    color:var(--texto);
+    max-width:52ch;
+  }
+  .hero .acao{margin-top:40px}
+  @media(max-width:640px){.hero{padding:64px 0 60px}}
+
+  /* ---------- seções ---------- */
+  section{padding:84px 0;border-bottom:1px solid var(--borda)}
+  h2{
+    font-size:clamp(26px,4.6vw,42px);
+    line-height:1.05;
+    letter-spacing:-.01em;
+    color:#fff;
+    max-width:18ch;
+    margin-bottom:26px;
+  }
+  h3{
+    font-size:16px;letter-spacing:.02em;color:#fff;margin-bottom:8px;
+  }
+  @media(max-width:640px){section{padding:60px 0}}
+
+  /* ---------- problema ---------- */
+  .problema p{margin-bottom:18px;font-size:17.5px}
+  .problema .fecho{
+    color:#fff;font-weight:600;
+    border-left:2px solid var(--ouro);
+    padding-left:20px;
+    margin-top:30px;
+  }
+
+  /* ---------- corte ---------- */
+  .corte{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:12px}
+  .corte > div{padding:34px 36px}
+  .corte .sim{background:var(--carvao);border:1px solid var(--borda);border-radius:8px 0 0 8px}
+  .corte .nao{border:1px solid var(--borda);border-left:none;border-radius:0 8px 8px 0}
+  .corte h3{
+    font-size:13px;letter-spacing:.12em;margin-bottom:20px;
+  }
+  .corte .sim h3{color:var(--ouro)}
+  .corte .nao h3{color:var(--fraco)}
+  .corte ul{list-style:none}
+  .corte li{position:relative;padding-left:24px;margin-bottom:14px;font-size:15.5px}
+  .corte .sim li::before{
+    content:"";position:absolute;left:0;top:10px;
+    width:9px;height:9px;border-radius:50%;background:var(--ouro);
+  }
+  .corte .nao li{color:var(--fraco)}
+  .corte .nao li::before{
+    content:"";position:absolute;left:0;top:14px;
+    width:11px;height:1px;background:#3A3A3A;
+  }
+  @media(max-width:680px){
+    .corte{grid-template-columns:1fr}
+    .corte .sim{border-radius:8px 8px 0 0}
+    .corte .nao{border-left:1px solid var(--borda);border-top:none;border-radius:0 0 8px 8px}
+  }
+
+  /* ---------- método ---------- */
+  .etapas{margin-top:20px}
+  .etapa{
+    display:grid;grid-template-columns:76px 1fr;
+    gap:24px;padding:28px 0;border-top:1px solid var(--borda);
+  }
+  .etapa:last-child{border-bottom:1px solid var(--borda)}
+  .etapa .num{
+    font-family:'Archivo',sans-serif;font-weight:800;
+    font-size:34px;color:var(--ouro);
+    font-variant-numeric:tabular-nums;line-height:1;
+  }
+  .etapa p{color:var(--texto);font-size:16px;margin-top:4px}
+  @media(max-width:560px){
+    .etapa{grid-template-columns:52px 1fr;gap:16px}
+    .etapa .num{font-size:26px}
+  }
+
+  /* ---------- entregas ---------- */
+  .entregas{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:1px;background:var(--borda);
+    border:1px solid var(--borda);border-radius:8px;overflow:hidden;
+    margin-top:14px;
+  }
+  .entregas div{background:var(--preto);padding:28px 26px}
+  .entregas p{font-size:15px;color:var(--fraco);margin:0}
+
+
+  /* ---------- clientes ---------- */
+  .clientes{padding:64px 0}
+  .clientes .titulo{
+    font-family:'Archivo',sans-serif;font-weight:800;text-transform:uppercase;
+    font-size:12.5px;letter-spacing:.16em;color:var(--fraco);
+    text-align:center;margin-bottom:34px;
+  }
+  .logos{
+    display:grid;grid-template-columns:repeat(3,1fr);
+    gap:28px 44px;align-items:center;justify-items:center;
+  }
+  .logos img{
+    max-width:150px;max-height:52px;width:auto;height:auto;
+    filter:grayscale(1) brightness(1.7);opacity:.62;
+    transition:opacity .2s ease, filter .2s ease;
+  }
+  .logos img:hover{filter:none;opacity:1}
+  @media(max-width:600px){
+    .clientes{padding:48px 0}
+    .logos{grid-template-columns:repeat(2,1fr);gap:26px}
+    .logos img:last-child{grid-column:1/-1}
+    .logos img{max-height:44px}
+  }
+
+  /* ---------- quem ---------- */
+  .quem{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+  .quem .assinatura{
+    font-family:'Archivo',sans-serif;font-weight:800;
+    font-size:clamp(30px,5vw,46px);text-transform:uppercase;
+    color:#fff;line-height:1;letter-spacing:-.01em;
+  }
+  .quem .cargo{color:var(--ouro);font-size:15px;margin-top:12px}
+  .quem .local{color:var(--fraco);font-size:15px;margin-top:2px}
+  .quem p{font-size:16.5px;margin-bottom:16px}
+  @media(max-width:760px){.quem{grid-template-columns:1fr;gap:28px}}
+
+  /* ---------- faq ---------- */
+  details{border-top:1px solid var(--borda)}
+  details:last-of-type{border-bottom:1px solid var(--borda)}
+  summary{
+    cursor:pointer;list-style:none;
+    padding:24px 40px 24px 0;position:relative;
+    font-weight:600;color:#fff;font-size:16.5px;
+  }
+  summary::-webkit-details-marker{display:none}
+  summary::after{
+    content:"+";position:absolute;right:6px;top:22px;
+    color:var(--ouro);font-size:22px;font-weight:400;line-height:1;
+  }
+  details[open] summary::after{content:"–"}
+  details p{padding:0 0 24px;color:var(--texto);font-size:16px}
+
+  /* ---------- cta final ---------- */
+  .final{
+    background:var(--carvao);
+    text-align:center;
+    border-bottom:none;
+  }
+  .final h2{margin:0 auto 22px;max-width:16ch}
+  .final p{margin:0 auto 34px;color:var(--texto);max-width:46ch}
+  .final .btn{padding:19px 44px;font-size:16px}
+
+  /* ---------- rodapé ---------- */
+  footer{background:var(--preto);border-top:1px solid var(--borda);padding:46px 0 60px}
+  .rodape{display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between;font-size:14px;color:var(--fraco)}
+  .rodape a{color:var(--texto);text-decoration:none}
+  .rodape a:hover{color:var(--ouro-claro);text-decoration:underline}
+  .rodape .dados{line-height:1.9}
+  .rodape .marca{
+    font-family:'Archivo',sans-serif;font-weight:800;
+    letter-spacing:.16em;color:var(--ouro);font-size:16px;margin-bottom:10px;
+  }
+
+  :focus-visible{outline:2px solid var(--ouro);outline-offset:3px}
+  @media(prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *{transition:none!important}
+  }
+</style>
+</head>
+<body>
+
+<div class="topo">
+  <div class="wrap">
+    <span class="logo">VEXT</span>
+    <a class="btn" href="diagnostico.html">Fazer diagnóstico</a>
+  </div>
+</div>
+
+<!-- ================= HERO ================= -->
+<div class="hero">
+  <div class="wrap">
+    <p class="eixo">Gestão de tráfego pago · Manaus/AM</p>
+    <h1>Seu anúncio não precisa de alcance. Precisa de <em>cliente</em>.</h1>
+    <p class="lead">Campanha estruturada para empresa que já fatura acima de R$ 40 mil por mês e está cansada de pagar por curtida, visualização e mensagem que não vira nada.</p>
+    <div class="acao">
+      <a class="btn" href="diagnostico.html">Fazer o diagnóstico gratuito</a>
+      <span class="btn-nota">8 perguntas · leva 2 minutos · sem compromisso</span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PROBLEMA ================= -->
+<section class="problema">
+  <div class="wrap estreito">
+    <h2>O erro que sai <em>caro</em></h2>
+    <p>A maior parte das empresas não perde dinheiro por anunciar pouco. Perde por anunciar sem saber o que está comprando.</p>
+    <p>O relatório mostra alcance, impressão, engajamento. Números que sobem todo mês e não aparecem no caixa. Quando você pergunta quantos clientes vieram dali, ninguém sabe responder — porque nunca foi medido.</p>
+    <p>Enquanto isso o orçamento vai embora em público mal definido, criativo que ninguém testou e campanha que é mexida três vezes por semana sem critério nenhum.</p>
+    <p class="fecho">Tráfego pago só funciona quando cada real investido tem um caminho medido até a venda. Sem isso, é aposta.</p>
+  </div>
+</section>
+
+<!-- ================= CORTE ================= -->
+<section>
+  <div class="wrap">
+    <h2>Não é pra <em>todo mundo</em></h2>
+    <p style="margin-bottom:34px">Prefiro dizer antes de você perder tempo preenchendo formulário.</p>
+    <div class="corte">
+      <div class="sim">
+        <h3>Faz sentido conversar se</h3>
+        <ul>
+          <li>Sua empresa fatura <strong>acima de R$ 40 mil por mês</strong></li>
+          <li>Você decide sozinho ou com um sócio</li>
+          <li>Tem verba de mídia separada da minha remuneração</li>
+          <li>Existe alguém pronto pra atender o lead que chegar</li>
+          <li>Você quer começar nos próximos 30 dias</li>
+        </ul>
+      </div>
+      <div class="nao">
+        <h3>Não faz sentido se</h3>
+        <ul>
+          <li>Você está começando agora e ainda não tem faturamento</li>
+          <li>Procura o mais barato do mercado</li>
+          <li>Quer resultado garantido em uma semana</li>
+          <li>Não tem quem responda os contatos que chegam</li>
+          <li>Precisa aprovar tudo com mais três pessoas</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MÉTODO ================= -->
+<section>
+  <div class="wrap">
+    <h2>Como o trabalho <em>funciona</em></h2>
+    <div class="etapas">
+      <div class="etapa">
+        <span class="num">1</span>
+        <div>
+          <h3>Diagnóstico</h3>
+          <p>Uma conversa de 30 minutos sobre número: quanto entra, de onde vem, quanto vale um cliente pra você e quanto dá pra pagar por um contato novo. Sem isso, nenhuma campanha tem meta.</p>
+        </div>
+      </div>
+      <div class="etapa">
+        <span class="num">2</span>
+        <div>
+          <h3>Estrutura</h3>
+          <p>Antes de subir qualquer anúncio: rastreamento instalado e testado, formulário de qualificação, destino do lead definido. É a parte que ninguém mostra e que decide se a campanha vai poder ser medida.</p>
+        </div>
+      </div>
+      <div class="etapa">
+        <span class="num">3</span>
+        <div>
+          <h3>Campanha</h3>
+          <p>Oferta, criativo e público montados pro seu caso. Roda com regra combinada: o que não se mexe na primeira semana, o que se corta, quando se aumenta verba. Nada de ajuste por impulso.</p>
+        </div>
+      </div>
+      <div class="etapa">
+        <span class="num">4</span>
+        <div>
+          <h3>Leitura semanal</h3>
+          <p>Toda semana você recebe o que importa: quantos contatos entraram, quanto custou cada um, quais viraram conversa e o que muda na semana seguinte. Em português, não em print de plataforma.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ENTREGAS ================= -->
+<section>
+  <div class="wrap">
+    <h2>O que fica <em>com você</em></h2>
+    <div class="entregas">
+      <div><h3>Rastreamento próprio</h3><p>Pixel e conversões instalados na sua conta, não na minha. Se um dia a gente parar, fica.</p></div>
+      <div><h3>Formulário que filtra</h3><p>Contato chega já qualificado, com faturamento, prazo e poder de decisão respondidos.</p></div>
+      <div><h3>Contas no seu nome</h3><p>Gerenciador e conta de anúncios são seus. Acesso meu, propriedade sua.</p></div>
+      <div><h3>Histórico de teste</h3><p>O registro do que foi testado e do que funcionou fica documentado.</p></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================= CLIENTES ================= -->
+<!-- Coloque os arquivos numa pasta "logos" ao lado do index.html.
+     PNG com fundo transparente, altura de uns 200px, funciona melhor.
+     Sobrando slot, apague a linha inteira. Faltando, copie uma linha. -->
+<section class="clientes">
+  <div class="wrap">
+    <p class="titulo">Marcas que já confiaram</p>
+    <div class="logos">
+      <img src="logos/ronin.png"         alt="Grupo Ronin">
+      <img src="logos/vtm.png"           alt="VTM Mídia">
+      <img src="logos/maria-express.png" alt="Maria Express">
+    </div>
+  </div>
+</section>
+
+<!-- ================= QUEM ================= -->
+<section>
+  <div class="wrap">
+    <div class="quem">
+      <div>
+        <div class="assinatura">João <em>Vext</em></div>
+        <p class="cargo">Gestor de tráfego pago</p>
+        <p class="local">Manaus / AM</p>
+      </div>
+      <div>
+        <p>São <strong>4 anos trabalhando com tráfego pago</strong>. Nesse tempo, <strong>mais de meio milhão de reais em verba de anúncio</strong> passou pelas minhas mãos — dinheiro de cliente, gerenciado por mim, com registro de onde cada real foi parar.</p>
+        <p>E o trabalho não é só subir campanha: envolve produção de conteúdo, análise do que está rodando e estratégia para empresa que quer se destacar de verdade no mercado, não só aparecer.</p>
+        <p>A Vext não é agência de dez clientes rodando no piloto automático. Atendo poucas contas ao mesmo tempo, porque campanha que dá resultado precisa de alguém olhando de perto — e isso não escala com planilha genérica.</p>
+        <p>Se eu achar que não consigo entregar retorno no seu caso, eu digo na primeira conversa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section>
+  <div class="wrap estreito">
+    <h2>Perguntas <em>diretas</em></h2>
+
+    <details>
+      <summary>Quanto custa?</summary>
+      <p>São dois valores separados: a verba de mídia, que você paga direto pra plataforma, e minha remuneração pela gestão. O valor da gestão depende do tamanho da operação e do que ela exige — por isso eu não publico tabela. Falo o número na primeira conversa, sem rodeio, depois de entender o seu caso.</p>
+    </details>
+
+    <details>
+      <summary>Quanto preciso investir em mídia?</summary>
+      <p>Abaixo de <strong>R$ 1.500 por mês</strong> em mídia a campanha não junta dados suficientes pra ser otimizada, e aí o trabalho vira adivinhação. Esse é o piso pra fazer sentido — não é uma regra que eu inventei, é como as plataformas aprendem.</p>
+    </details>
+
+    <details>
+      <summary>Tem fidelidade ou contrato longo?</summary>
+      <p>Prazo mínimo de <strong>3 meses</strong>. Não é fidelidade pra te prender: é o tempo que a campanha leva pra sair do aprendizado e mostrar o que sabe. Em menos que isso, qualquer conclusão é chute.</p>
+      <p>Passados os 3 meses, segue mês a mês, com <strong>aviso prévio de 30 dias</strong> de qualquer um dos lados. Pagamento da gestão por <strong>Pix, boleto ou cartão de crédito</strong>. A verba de mídia é paga direto à plataforma, no seu cartão — ela nunca passa por mim.</p>
+    </details>
+
+    <details>
+      <summary>Em quanto tempo vejo resultado?</summary>
+      <p>Os primeiros contatos costumam aparecer nos primeiros dias. Mas campanha nova passa por um período de aprendizado, e o custo por contato só estabiliza depois de algumas semanas de dado acumulado. Quem promete resultado garantido em sete dias está vendendo sorte.</p>
+    </details>
+
+    <details>
+      <summary>Você atende fora de Manaus?</summary>
+      <p>Sim. O trabalho é remoto e as reuniões são por chamada de vídeo. Atendo empresa de qualquer estado, desde que se encaixe nos critérios lá de cima.</p>
+    </details>
+
+    <details>
+      <summary>E se não der resultado?</summary>
+      <p>Não trabalho com promessa de resultado garantido — ninguém sério trabalha. O que eu garanto é medição honesta: você vai saber exatamente quanto entrou, quanto custou e o que foi testado. Se ao fim dos 3 meses os números não justificarem continuar, eu mesmo levanto a mão.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= CTA FINAL ================= -->
+<section class="final" id="diagnostico">
+  <div class="wrap">
+    <h2>Comece pelo <em>diagnóstico</em></h2>
+    <p>Oito perguntas rápidas sobre a sua empresa. Se fizer sentido, marcamos uma conversa de 30 minutos. Se não fizer, eu falo na hora.</p>
+    <a class="btn" href="diagnostico.html">Responder as 8 perguntas</a>
+    <span class="btn-nota">Leva 2 minutos · seus dados não são compartilhados com terceiros para venda</span>
+  </div>
+</section>
+
+<!-- ================= RODAPÉ ================= -->
+<footer>
+  <div class="wrap">
+    <div class="rodape">
+      <div class="dados">
+        <div class="marca">VEXT</div>
+        João Victor dos Santos Brito<br>
+        CNPJ 65.934.384/0001-65<br>
+        Manaus/AM
+      </div>
+      <div class="dados">
+        <a href="https://wa.me/5592984311798">(92) 98431-1798</a><br>
+        <a href="https://instagram.com/vext.midia">@vext.midia</a>
+      </div>
+      <div class="dados">
+        <a href="privacidade.html">Política de Privacidade</a><br>
+        <a href="diagnostico.html">Fazer diagnóstico</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
