@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
 <meta name="theme-color" content="#FFFFFF">
 <meta name="format-detection" content="telephone=no">
 <title>Agendar conversa — Vext Mídia</title>
@@ -11,6 +12,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
+    color-scheme:light;
+
     --fundo:#FFFFFF;
     --superficie:#FAF9F7;
     --borda:#E7E4DF;
@@ -27,7 +30,7 @@
     --barra:calc(76px + env(safe-area-inset-bottom));
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  html{-webkit-text-size-adjust:100%}
+  html{background:#FFFFFF;-webkit-text-size-adjust:100%}
   body{
     background:var(--fundo);color:var(--carvao);
     font-family:'Inter',system-ui,-apple-system,sans-serif;
@@ -293,6 +296,11 @@
   footer a{color:var(--carvao);min-height:var(--toque);display:inline-flex;align-items:center}
 
   .oculto{display:none!important}
+
+  /* Trava contra escurecimento automático de navegador/webview */
+  @media (prefers-color-scheme: dark){
+    html,body{background:#FFFFFF !important;color:#101010 !important}
+  }
   :focus-visible{outline:2px solid var(--ouro);outline-offset:2px}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto}}
 
