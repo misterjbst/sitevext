@@ -54,7 +54,8 @@
     padding-top:env(safe-area-inset-top);
   }
   header .wrap{display:flex;align-items:center;justify-content:space-between;height:56px}
-  .logo{font-family:'Archivo',sans-serif;font-weight:800;font-size:17px;letter-spacing:.15em;color:var(--carvao)}
+  .logo{font-family:'Archivo',sans-serif;font-weight:800;font-size:17px;letter-spacing:.15em;color:var(--carvao);text-decoration:none;display:inline-block}
+  .logo:hover span{color:var(--ouro-texto)}
   .logo span{color:var(--ouro)}
   .fuso-topo{font-size:12px;color:var(--fraco);text-align:right;line-height:1.25;max-width:44%}
 
@@ -421,7 +422,7 @@ const TRACK = {
 
 <header id="topo">
   <div class="wrap">
-    <span class="logo">VE<span>X</span>T</span>
+    <a class="logo" href="https://misterjbst.github.io/sitevext/" aria-label="Vext Mídia — página inicial">VE<span>X</span>T</a>
     <span class="fuso-topo" id="fusoTopo"></span>
   </div>
 </header>
@@ -528,7 +529,7 @@ const TRACK = {
     <div class="confirmado">
       <div class="selo" style="background:var(--superficie);border:1px solid var(--borda);color:var(--fraco)">—</div>
       <h2>Antes de <em>agendar</em></h2>
-      <p>A agenda abre depois do diagnóstico. São oito perguntas rápidas sobre a sua empresa — assim eu chego na conversa já sabendo do que a gente vai falar.</p>
+      <p id="txtBloqueio">A agenda abre depois do diagnóstico. São oito perguntas rápidas sobre a sua empresa — assim eu chego na conversa já sabendo do que a gente vai falar.</p>
       <a class="btn" id="linkForm" style="display:block;text-decoration:none;line-height:24px" href="#">Fazer o diagnóstico</a>
     </div>
   </div>
@@ -634,6 +635,7 @@ const TRACK = {
 <footer id="rodape">
   <div class="wrap">
     <span id="rodapeNome">Vext Mídia — Manaus/AM</span>
+    <a href="https://wa.me/5592984311798">(92) 98431-1798</a>
     <a href="privacidade.html">Política de Privacidade</a>
   </div>
 </footer>
@@ -1205,17 +1207,32 @@ $("pinCancelar").addEventListener("click", () => $("folhaPin").classList.remove(
   }
 })();
 
-function bloquear(){
+function bloquear(motivo){
   ["intro","passos","passoTxt","blocoDia","blocoHora","blocoDados"]
     .forEach(id => $(id).classList.add("oculto"));
   $("barraAcao").classList.add("escondida");
   document.body.classList.add("sem-barra");
   $("linkForm").href = CFG.URL_FORMULARIO;
+
+  if(motivo === "expirado"){
+    $("txtBloqueio").textContent = "Seu acesso à agenda expirou ou já foi usado. "
+      + "Responda o diagnóstico de novo — leva dois minutos e as respostas ficam salvas.";
+  }
   $("blocoBloqueado").classList.remove("oculto");
+
+  // ?debug=1 na URL mostra o motivo técnico
+  if(new URLSearchParams(location.search).get("debug") === "1"){
+    const d = document.createElement("p");
+    d.style.cssText = "margin-top:18px;font-size:12.5px;color:var(--fraco);font-family:monospace";
+    d.textContent = "motivo: " + (motivo || "sem token") + " · token: "
+      + (S.token ? S.token.slice(0,8) + "…" : "(vazio)");
+    $("blocoBloqueado").querySelector(".confirmado").appendChild(d);
+  }
+  console.warn("Agenda bloqueada:", motivo || "sem token na URL");
 }
 
 async function validarToken(token){
-  if(!token){ bloquear(); return; }
+  if(!token){ bloquear("sem token"); return; }
 
   // sem back-end (modo demo) não há o que validar: passa
   if(DEMO) return;
@@ -1223,9 +1240,11 @@ async function validarToken(token){
   try{
     const r = await fetch(CFG.URL_APPS_SCRIPT + "?acao=validar&token=" + encodeURIComponent(token));
     const j = await r.json();
-    if(!j.ok || !j.valido) bloquear();
+    if(!j.ok) bloquear("servidor respondeu erro");
+    else if(!j.valido) bloquear("expirado");
   }catch(err){
-    // servidor fora do ar: não trava o cliente que veio do formulário
+    // servidor fora do ar: não trava quem veio do formulário
+    console.warn("Não consegui validar o token:", err);
   }
 }
 </script>
