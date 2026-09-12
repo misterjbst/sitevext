@@ -166,7 +166,7 @@ const CFG = {
   ACEITA_SOCIO: true,        // "decido com meu sócio" passa
   CORTA_VERBA_BAIXA: true,   // pretender investir até R$ 1 mil corta
 
-  WHATSAPP: "(92) 90000-0000"
+  WHATSAPP: "(92) 98431-1798"
 };
 
 /* =====================================================================
@@ -315,6 +315,15 @@ const TRACK = {
     <h2>Faz sentido <em>conversar</em></h2>
     <p>Suas respostas se encaixam no que eu atendo. Abrindo a agenda com os horários livres.</p>
     <button class="btn" id="btnAgenda">Escolher horário</button>
+  </div>
+
+  <!-- ============ FALHA TÉCNICA ============ -->
+  <div class="final" id="telaFalha">
+    <div class="selo nao">!</div>
+    <h2>Quase <em>lá</em></h2>
+    <p id="txtFalha">Suas respostas foram enviadas, mas não consegui confirmar o registro.</p>
+    <p>Me chame no WhatsApp <span id="zapFalha"></span> que eu marco a conversa na mão. Leva um minuto.</p>
+    <a class="btn" id="linkFalha" href="#" style="display:inline-block;text-decoration:none;line-height:26px;margin-top:22px">Chamar no WhatsApp</a>
   </div>
 
   <!-- ============ FORA DO CORTE ============ -->
@@ -624,8 +633,27 @@ async function enviar(){
     await new Promise(x => setTimeout(x, 600));
   }
 
-  // o veredito do SERVIDOR manda; se ele não respondeu, cai no cálculo local
-  const passou = (resposta && typeof resposta.passou === "boolean") ? resposta.passou : r.passou;
+  // o veredito do SERVIDOR manda
+  const respondeu = !!(resposta && resposta.ok === true && typeof resposta.passou === "boolean");
+  const passou = respondeu ? resposta.passou : r.passou;
+  const temToken = !!(resposta && resposta.token);
+
+  // servidor fora do ar, ou aprovado sem token: não manda pra agenda,
+  // que vai barrar. Mostra o que houve e oferece o WhatsApp.
+  if(!respondeu || (passou && !temToken)){
+    console.error("Resposta do servidor:", resposta);
+    $("telaEnviando").classList.remove("on");
+    $("txtFalha").textContent = !respondeu
+      ? "Suas respostas foram enviadas, mas não consegui confirmar o registro."
+      : "Suas respostas foram registradas, mas não consegui liberar a agenda.";
+    $("zapFalha").textContent = CFG.WHATSAPP;
+    $("linkFalha").href = "https://wa.me/55" + CFG.WHATSAPP.replace(/\D/g,"")
+      + "?text=" + encodeURIComponent("Oi! Respondi o diagnóstico no site mas a agenda não abriu.");
+    $("telaFalha").classList.add("on");
+    disparar("lead", { content_name:"Diagnóstico Vext", faixa:r.faixa, falha:1 }, S.eid);
+    S.enviando = false;
+    return;
+  }
 
   disparar("lead", { content_name:"Diagnóstico Vext", faixa: resposta.faixa || r.faixa }, S.eid);
   if(passou) disparar("lead_aprovado", { faixa: resposta.faixa || r.faixa }, S.eid + "-q");
